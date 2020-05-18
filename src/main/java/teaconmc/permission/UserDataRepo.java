@@ -1,5 +1,6 @@
 package teaconmc.permission;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -7,7 +8,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.Objects;
@@ -68,7 +68,10 @@ public final class UserDataRepo {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (!Files.isHidden(file) && file.getFileName().toString().endsWith(".json")) {
-                    final UserGroup group = GSON.fromJson(Files.newBufferedReader(file, StandardCharsets.UTF_8), UserGroup.class);
+                    final UserGroup group;
+                    try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                        group = GSON.fromJson(reader, UserGroup.class);
+                    }
                     if (group.name.isEmpty()) {
                         final String filename = file.getFileName().toString();
                         LOGGER.warn("Gropu definition '{}' didn't set a name, falling bak to file name.", filename);
@@ -80,7 +83,9 @@ public final class UserDataRepo {
                         UserDataRepo.this.fallbackGroup = group;
                     }
                 } else if (".player_data.dat".equals(file.getFileName().toString())) {
-                    UserDataRepo.this.users.putAll(GSON.fromJson(Files.newBufferedReader(file, StandardCharsets.UTF_8), USER_LIST_TYPE));
+                    try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                        UserDataRepo.this.users.putAll(GSON.fromJson(reader, USER_LIST_TYPE));
+                    }
                 }
                 return FileVisitResult.CONTINUE;
             }
@@ -99,8 +104,7 @@ public final class UserDataRepo {
     }
 
     void save(Path configRoot) throws IOException {
-        Files.write(configRoot.resolve(".player_data.dat"), GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8), 
-            StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(configRoot.resolve(".player_data.dat"), GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8));
     }
 
     void reset() {
