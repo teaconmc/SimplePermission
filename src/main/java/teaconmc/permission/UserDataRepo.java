@@ -132,11 +132,16 @@ public final class UserDataRepo {
 	}
 
     public UserGroup lookup(UUID id) {
-        return this.groups.getOrDefault(this.users.get(id), this.fallbackGroup);
+        String group;
+        if ((group = this.users.get(id)) == null) {
+            return this.fallbackGroup;
+        } else {
+            return this.groups.getOrDefault(group, this.fallbackGroup);
+        }
     }
 
     public Boolean hasPermission(UUID id, String permission) {
-        final UserGroup group = this.groups.getOrDefault(this.users.get(id), this.fallbackGroup);
+        final UserGroup group = this.lookup(id);
         if (group.permissions.containsKey(permission)) {
             return group.permissions.get(permission);
         } else {

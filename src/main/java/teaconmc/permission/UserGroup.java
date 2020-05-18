@@ -25,6 +25,18 @@ public final class UserGroup {
     public boolean fallback = false;
 
     /**
+     * Name of the gamemode that first-time player of this group will be switched to. 
+     * Default to Survival Mode ({@code survival}). Currently, valid values are:
+     * <ul>
+     * <li>{@code adventure}</li>
+     * <li>{@code creative}</li>
+     * <li>{@code spectator}</li>
+     * <li>{@code survival}</li>
+     * </ul>
+     */
+    public String mode = "survival";
+
+    /**
      * A set of other group names to look up if a particular permission values.
      * is unset.
      */
