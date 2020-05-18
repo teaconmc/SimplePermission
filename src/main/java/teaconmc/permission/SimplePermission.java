@@ -7,12 +7,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.PlayerAdvancements;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,8 +29,6 @@ public class SimplePermission {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
 
-    private static Advancement newPlayerMarker;
-
     public SimplePermission() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
                 () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (serverVer, isDedicated) -> true));
@@ -49,7 +43,6 @@ public class SimplePermission {
     public static void serverStart(FMLServerStartingEvent event) {
         new SimplePermissionCommand(event.getCommandDispatcher());
         reload(event.getServer());
-        newPlayerMarker = event.getServer().getAdvancementManager().getAdvancement(new ResourceLocation("simple_permission", "root"));
     }
 
     static void reload(MinecraftServer server) {
@@ -94,16 +87,11 @@ public class SimplePermission {
     }
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        final UserGroup group = UserDataRepo.INSTANCE.lookup(event.getPlayer().getGameProfile().getId());
-        final GameType type = GameType.getByName(group.mode);
         final PlayerEntity player = event.getPlayer();
-        if (player instanceof ServerPlayerEntity) {
-            final PlayerAdvancements advancements = player.getServer().getPlayerList().getPlayerAdvancements((ServerPlayerEntity)player);
-            if (!advancements.getProgress(newPlayerMarker).isDone()) {
-                player.setGameType(type);
-                advancements.grantCriterion(newPlayerMarker, "marker");
-            }
-        }
+        UserDataRepo.INSTANCE.initForFirstTime(player.getGameProfile().getId(), group -> {
+            player.setGameType(GameType.getByName(group.mode));
+        });
+        final UserGroup group = UserDataRepo.INSTANCE.lookup(player.getGameProfile().getId());
         event.getPlayer().getPrefixes().add(new StringTextComponent(group.prefix));
     }
 }

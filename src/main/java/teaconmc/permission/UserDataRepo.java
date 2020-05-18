@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
@@ -129,11 +130,18 @@ public final class UserDataRepo {
 
     public Stream<String> groups() {
         return this.groups.keySet().stream();
-	}
+    }
+    
+    public void initForFirstTime(UUID id, Consumer<UserGroup> callback) {
+        if (!this.users.containsKey(id)) {
+            this.users.put(id, this.fallbackGroup.name);
+            callback.accept(this.fallbackGroup);
+        }
+    }
 
     public UserGroup lookup(UUID id) {
         String group;
-        if ((group = this.users.get(id)) == null) {
+        if ((group = this.users.get(id)) == null) { // Just in case.
             return this.fallbackGroup;
         } else {
             return this.groups.getOrDefault(group, this.fallbackGroup);
