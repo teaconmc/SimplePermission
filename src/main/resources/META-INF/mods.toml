@@ -1,0 +1,15 @@
+modLoader="javafml"
+
+loaderVersion="[31,)"
+
+[[mods]]
+modId="simple_permission"
+version="${file.jarVersion}"
+displayName="Simple Permission"
+
+# We will come back later.
+credits=""
+
+authors="3TUSK"
+
+description="SimplePermission (SimplePerms, SP) is a simple permission management mod in Forge framework."

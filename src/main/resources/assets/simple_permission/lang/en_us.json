@@ -1,0 +1,8 @@
+{
+    "command.simple_perms.error.invalid_group": "Cound not find the group you asked for!",
+
+    "command.simple_perms.info.about": "SimplePermission Ver. 0.0.0",
+    "command.simple_perms.info.reload": "SimplePermission has started reloading. ",
+    "command.simple_perms.info.list_item": " - %s",
+    "command.simple_perms.info.total_members": "-- Total %s member(s) --"
+}
