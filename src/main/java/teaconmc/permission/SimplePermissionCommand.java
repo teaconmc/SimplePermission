@@ -8,7 +8,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
@@ -22,8 +22,8 @@ import net.minecraftforge.server.permission.PermissionAPI;
 
 public final class SimplePermissionCommand {
 
-    private static final SimpleCommandExceptionType GROUP_NOT_EXIST 
-        = new SimpleCommandExceptionType(new TranslationTextComponent("command.simple_perms.error.invalid_group", ObjectArrays.EMPTY_ARRAY));
+    private static final DynamicCommandExceptionType GROUP_NOT_EXIST 
+        = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_group", o));
 
     public SimplePermissionCommand(CommandDispatcher<CommandSource> dispatcher) {
         LiteralCommandNode<CommandSource> theCommand = dispatcher.register(Commands.literal("simplepermission")
@@ -88,7 +88,7 @@ public final class SimplePermissionCommand {
                 .forEach(uuid -> UserDataRepo.INSTANCE.assignUserToGroup(uuid, group));
             return Command.SINGLE_SUCCESS;
         } else {
-            throw GROUP_NOT_EXIST.create();
+            throw GROUP_NOT_EXIST.create(group);
         }
     }
 
@@ -113,7 +113,7 @@ public final class SimplePermissionCommand {
             source.sendFeedback(new TranslationTextComponent("command.simple_perms.info.total_members", count), true);
             return Command.SINGLE_SUCCESS;
         } else {
-            throw GROUP_NOT_EXIST.create();
+            throw GROUP_NOT_EXIST.create(group);
         }
     }
 

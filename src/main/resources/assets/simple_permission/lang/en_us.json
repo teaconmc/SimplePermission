@@ -1,5 +1,5 @@
 {
-    "command.simple_perms.error.invalid_group": "Cound not find the group you asked for!",
+    "command.simple_perms.error.invalid_group": "Cound not find a group called '%s'!",
 
     "command.simple_perms.info.about": "SimplePermission Ver. 0.0.0",
     "command.simple_perms.info.reload": "SimplePermission has started reloading. ",

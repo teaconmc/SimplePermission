@@ -1,5 +1,5 @@
 {
-    "command.simple_perms.error.invalid_group": "找不到你要的用户组！",
+    "command.simple_perms.error.invalid_group": "找不到名为 '%s' 的用户组！",
 
     "command.simple_perms.info.about": "SimplePermission 版本 0.0.0",
     "command.simple_perms.info.reload": "SimplePermission 已开始重载。",
