@@ -1,4 +1,4 @@
-package teaconmc.permission;
+package org.teacon.permission;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

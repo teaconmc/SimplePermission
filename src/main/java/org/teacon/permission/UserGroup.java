@@ -1,4 +1,4 @@
-package teaconmc.permission;
+package org.teacon.permission;
 
 import java.util.Collections;
 import java.util.Map;
