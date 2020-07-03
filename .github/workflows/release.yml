@@ -31,13 +31,19 @@ jobs:
         # https://github.com/actions/create-release/issues/25
         # We use Bash parameter expansion to do find-and-replace.
         # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+        # Also we cannot use git rev-list because it always prepend "commit <hash>"
+        # See https://stackoverflow.com/questions/36927089/
         run: |
           current_tag=${CURRENT/refs\/tags\//}
-          last_tag=`git describe --tags --abbrev=0 "$current_tag"^`
+          last_tag=`git describe --tags --abbrev=0 "$current_tag"^ 2>/dev/null || echo`
+          if [ last_tag ]; then
           changelog=`git log --pretty="format:%H: %s" ${last_tag}..$current_tag`
+          else
+          changelog=`git log --pretty="format:%H: %s" $current_tag`
+          fi
           changelog="${changelog//'%'/'%25'}"
           changelog="${changelog//$'\n'/'  %0A'}"
-          echo "::set-output name=value::Change set since ${last_tag}:  %0A%0A$changelog"
+          echo "::set-output name=value::Change set since ${last_tag:-the beginning}:  %0A%0A$changelog"
       - name: GitHub Release
         id: create_release
         uses: actions/create-release@v1.1.1
