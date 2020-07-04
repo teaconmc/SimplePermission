@@ -57,7 +57,14 @@ public class SimplePermission {
                     LOGGER.error("Error while try loading data from default config directory.", e);
                 }
             } else {
-                LOGGER.info("Did not read data from default config directory");
+                LOGGER.info("Did not read data from default config directory beceause it probably doesn't exist yet. ");
+                LOGGER.info("Will try creating one now. ");
+                try {
+                    Files.createDirectory(defaultConfig);
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", defaultConfig);
+                    LOGGER.debug("Error details: {}", e);
+                }
             }
             final Path localData = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath().resolve("simple_perms");
             if (Files.isDirectory(localData)) {
@@ -69,6 +76,13 @@ public class SimplePermission {
                 }
             } else {
                 LOGGER.info("Did not read data from per-world config directory");
+                LOGGER.info("Will try creating one now. ");
+                try {
+                    Files.createDirectory(localData);
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", localData);
+                    LOGGER.debug("Error details: {}", e);
+                }
             }
             UserDataRepo.INSTANCE.loading = false;
         }
@@ -82,6 +96,7 @@ public class SimplePermission {
             UserDataRepo.INSTANCE.save(localData);
         } catch (Exception e) {
             LOGGER.warn("Error occured while saving player data, bad things may happen. BACK UP FIRST!");
+            LOGGER.debug("Error details: {}", e);
         }
         UserDataRepo.INSTANCE.reset();
     }
