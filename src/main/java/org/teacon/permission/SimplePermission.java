@@ -4,6 +4,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameType;
+import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.ExtensionPoint;
@@ -27,6 +28,8 @@ import java.nio.file.Path;
 public class SimplePermission {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
+
+    public static final FolderName SIMPLE_PERMS_FOLDER_NAME =new FolderName("serverconfig/simpleperms");
 
     public SimplePermission() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
@@ -65,7 +68,7 @@ public class SimplePermission {
                     LOGGER.debug("Error details: ", e);
                 }
             }
-            final Path localData = server.getFile("serverconfig").toPath().resolve("simple_perms");
+            final Path localData = server.func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
             if (Files.isDirectory(localData)) {
                 try {
                     LOGGER.info("Read data from per-world config directory");
@@ -89,8 +92,7 @@ public class SimplePermission {
 
     public static void serverStop(FMLServerStoppingEvent event) {
         final MinecraftServer server = event.getServer();
-        final Path localData = server.getFile("serverconfig").toPath()
-                .resolve("simple_perms");
+        final Path localData = server.func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
         try {
             UserDataRepo.INSTANCE.save(localData);
         } catch (Exception e) {

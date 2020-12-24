@@ -43,7 +43,7 @@ public final class UserDataRepo {
     private final Map<UUID, String> users = new ConcurrentHashMap<>();
 
     /**
-     * Default group to use if a user is not explictly assigned to any group.
+     * Default group to use if a user is not explicitly assigned to any group.
      */
     private UserGroup fallbackGroup = new UserGroup();
 
