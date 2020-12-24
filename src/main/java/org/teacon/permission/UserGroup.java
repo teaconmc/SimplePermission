@@ -44,7 +44,7 @@ public final class UserGroup {
 
     /**
      * A collection of permission values. When querying this map, there are 
-     * three possilbe results:
+     * three possible results:
      * <ul>
      * <li> {@link Boolean#TRUE} means permission granted. </li>
      * <li> {@link Boolean#FALSE} means permission denied. </li>

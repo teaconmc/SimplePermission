@@ -74,7 +74,7 @@ public final class UserDataRepo {
                     }
                     if (group.name.isEmpty()) {
                         final String filename = file.getFileName().toString();
-                        LOGGER.warn("Gropu definition '{}' didn't set a name, falling bak to file name.", filename);
+                        LOGGER.warn("Group definition '{}' didn't set a name, falling bak to file name.", filename);
                         group.name = filename.replace(".json", "");
                     }
                     UserDataRepo.this.groups.put(group.name, group);
@@ -91,13 +91,13 @@ public final class UserDataRepo {
             }
 
             @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            public FileVisitResult visitFileFailed(Path file, IOException exc) {
                 LOGGER.debug("Failed to read {}, details: \n{}", file, exc);
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                 return FileVisitResult.CONTINUE;
             }
         });

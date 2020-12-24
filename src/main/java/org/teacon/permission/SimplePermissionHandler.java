@@ -8,10 +8,14 @@ import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.context.IContext;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@ParametersAreNonnullByDefault
 public final class SimplePermissionHandler implements IPermissionHandler {
 
     /**
-     * Fallback handler will be used when a permission is not explictly 
+     * Fallback handler will be used when a permission is not explicitly
      * set on our hands.
      */
     private final IPermissionHandler parent;
@@ -31,7 +35,7 @@ public final class SimplePermissionHandler implements IPermissionHandler {
     }
 
     @Override
-    public boolean hasPermission(GameProfile profile, String node, IContext context) {
+    public boolean hasPermission(GameProfile profile, String node, @Nullable IContext context) {
         final Boolean result = UserDataRepo.INSTANCE.hasPermission(profile.getId(), node);
         return result == null ? this.parent.hasPermission(profile, node, context) : result;
     }

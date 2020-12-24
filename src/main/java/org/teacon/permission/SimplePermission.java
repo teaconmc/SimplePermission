@@ -1,12 +1,5 @@
 package org.teacon.permission;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
@@ -23,6 +16,12 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Mod("simple_permission")
 public class SimplePermission {
@@ -41,7 +40,7 @@ public class SimplePermission {
     }
 
     public static void serverStart(FMLServerStartingEvent event) {
-        new SimplePermissionCommand(event.getCommandDispatcher());
+        SimplePermissionCommand.register(event.getServer().getCommandManager().getDispatcher());
         reload(event.getServer());
     }
 
@@ -63,10 +62,10 @@ public class SimplePermission {
                     Files.createDirectory(defaultConfig);
                 } catch (Exception e) {
                     LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", defaultConfig);
-                    LOGGER.debug("Error details: {}", e);
+                    LOGGER.debug("Error details: ", e);
                 }
             }
-            final Path localData = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath().resolve("simple_perms");
+            final Path localData = server.getFile("serverconfig").toPath().resolve("simple_perms");
             if (Files.isDirectory(localData)) {
                 try {
                     LOGGER.info("Read data from per-world config directory");
@@ -81,7 +80,7 @@ public class SimplePermission {
                     Files.createDirectory(localData);
                 } catch (Exception e) {
                     LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", localData);
-                    LOGGER.debug("Error details: {}", e);
+                    LOGGER.debug("Error details: ", e);
                 }
             }
             UserDataRepo.INSTANCE.loading = false;
@@ -90,22 +89,22 @@ public class SimplePermission {
 
     public static void serverStop(FMLServerStoppingEvent event) {
         final MinecraftServer server = event.getServer();
-        final Path localData = server.getActiveAnvilConverter().getFile(server.getFolderName(), "serverconfig").toPath()
+        final Path localData = server.getFile("serverconfig").toPath()
                 .resolve("simple_perms");
         try {
             UserDataRepo.INSTANCE.save(localData);
         } catch (Exception e) {
-            LOGGER.warn("Error occured while saving player data, bad things may happen. BACK UP FIRST!");
-            LOGGER.debug("Error details: {}", e);
+            LOGGER.warn("Error occurred while saving player data, bad things may happen. BACK UP FIRST!");
+            LOGGER.debug("Error details: ", e);
         }
         UserDataRepo.INSTANCE.reset();
     }
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
         final PlayerEntity player = event.getPlayer();
-        UserDataRepo.INSTANCE.initForFirstTime(player.getGameProfile().getId(), group -> {
-            player.setGameType(GameType.getByName(group.mode));
-        });
+        UserDataRepo.INSTANCE.initForFirstTime(player.getGameProfile().getId(), group ->
+                player.setGameType(GameType.getByName(group.mode))
+        );
         final UserGroup group = UserDataRepo.INSTANCE.lookup(player.getGameProfile().getId());
         event.getPlayer().getPrefixes().add(new StringTextComponent(group.prefix));
     }
