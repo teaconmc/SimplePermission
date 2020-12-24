@@ -1,7 +1,7 @@
 {
-    "command.simple_perms.error.invalid_group": "Cound not find a group called '%s'!",
+    "command.simple_perms.error.invalid_group": "Could not find a group called '%s'!",
 
-    "command.simple_perms.info.about": "SimplePermission Ver. 0.0.0",
+    "command.simple_perms.info.about": "SimplePermission Ver. 0.1.1-beta",
     "command.simple_perms.info.reload": "SimplePermission has started reloading. ",
     "command.simple_perms.info.list_item": " - %s",
     "command.simple_perms.info.total_members": "-- Total %s member(s) --"
