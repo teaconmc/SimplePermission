@@ -79,7 +79,7 @@ public final class UserDataRepo {
                     }
                     UserDataRepo.this.groups.put(group.name, group);
                     if (group.fallback) {
-                        LOGGER.info("Default user group is now '{}'.'", group.name);
+                        LOGGER.info("Default user group is now '{}'.", group.name);
                         UserDataRepo.this.fallbackGroup = group;
                     }
                 } else if (".player_data.dat".equals(file.getFileName().toString())) {
