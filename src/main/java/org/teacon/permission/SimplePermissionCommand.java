@@ -17,13 +17,21 @@ import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.PermissionAPI;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.teacon.permission.repo.UserDataRepo;
 
+import java.io.IOException;
 import java.util.Objects;
+
+import static org.teacon.permission.SimplePermission.REPO;
+
 
 public final class SimplePermissionCommand {
 
     private static final DynamicCommandExceptionType GROUP_NOT_EXIST
             = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_group", o));
+    private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
 
     static void register(CommandDispatcher<CommandSource> dispatcher) {
         LiteralCommandNode<CommandSource> theCommand = dispatcher.register(Commands.literal("simplepermission")
@@ -65,16 +73,19 @@ public final class SimplePermissionCommand {
 
     static int reload(CommandContext<CommandSource> context) {
         context.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.reload", ObjectArrays.EMPTY_ARRAY), true);
-        final MinecraftServer server = context.getSource().getServer();
         Util.getServerExecutor().execute(() -> {
-            UserDataRepo.INSTANCE.reset();
-            SimplePermission.reload(server);
+            try {
+                SimplePermission.REPO.load();
+            } catch (IOException e) {
+                LOGGER.error("Failed to reload data repo", e);
+                context.getSource().sendErrorMessage(new TranslationTextComponent("command.simple_perms.error.reload"));
+            }
         });
         return Command.SINGLE_SUCCESS;
     }
 
     static int listGroups(CommandContext<CommandSource> context) {
-        UserDataRepo.INSTANCE.groups()
+        REPO.groups()
                 .map(group -> new TranslationTextComponent("command.simple_perms.info.list_item", group))
                 .forEach(t -> context.getSource().sendFeedback(t, true));
         return Command.SINGLE_SUCCESS;
@@ -82,10 +93,10 @@ public final class SimplePermissionCommand {
 
     static int addPlayerToGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = StringArgumentType.getString(context, "name");
-        if (UserDataRepo.INSTANCE.hasGroup(group)) {
+        if (REPO.hasGroup(group)) {
             GameProfileArgument.getGameProfiles(context, "player").stream()
                     .map(GameProfile::getId)
-                    .forEach(uuid -> UserDataRepo.INSTANCE.assignUserToGroup(uuid, group));
+                    .forEach(uuid -> REPO.assignUserToGroup(uuid, group));
             return Command.SINGLE_SUCCESS;
         } else {
             throw GROUP_NOT_EXIST.create(group);
@@ -95,15 +106,15 @@ public final class SimplePermissionCommand {
     static int removePlayerFromGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
         GameProfileArgument.getGameProfiles(context, "player").stream()
                 .map(GameProfile::getId)
-                .forEach(uuid -> UserDataRepo.INSTANCE.assignUserToGroup(uuid, ""));
+                .forEach(uuid -> REPO.assignUserToGroup(uuid, ""));
         return Command.SINGLE_SUCCESS;
     }
 
     static int listMembers(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = StringArgumentType.getString(context, "name");
-        if (UserDataRepo.INSTANCE.hasGroup(group)) {
+        if (REPO.hasGroup(group)) {
             final CommandSource source = context.getSource();
-            long count = UserDataRepo.INSTANCE.reverseLookup(group)
+            long count = REPO.reverseLookup(group)
                     .map(uuid -> context.getSource().getServer().getPlayerList().getPlayerByUUID(uuid))
                     .filter(Objects::nonNull)
                     .map(player -> new TranslationTextComponent("command.simple_perms.info.list_item", player.getDisplayName())

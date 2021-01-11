@@ -4,5 +4,6 @@
     "command.simple_perms.info.about": "SimplePermission 版本 0.1.1-beta",
     "command.simple_perms.info.reload": "SimplePermission 已开始重载。",
     "command.simple_perms.info.list_item": " - %s",
-    "command.simple_perms.info.total_members": "-- 总计 %s 名成员 --"
+    "command.simple_perms.info.total_members": "-- 总计 %s 名成员 --",
+    "command.simple_perms.error.reload": "重载配置失败，请检查日志以获取详细信息"
 }

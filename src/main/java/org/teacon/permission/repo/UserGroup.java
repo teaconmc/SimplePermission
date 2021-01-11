@@ -1,4 +1,4 @@
-package org.teacon.permission;
+package org.teacon.permission.repo;
 
 import java.util.Collections;
 import java.util.Map;
@@ -17,12 +17,6 @@ public final class UserGroup {
      * Prefix that will append before player's display name.
      */
     public String prefix = "";
-
-    /**
-     * Marker to denote "this group can be used as a fallback".
-     */
-    @SerializedName("default")
-    public boolean fallback = false;
 
     /**
      * Name of the gamemode that first-time player of this group will be switched to. 

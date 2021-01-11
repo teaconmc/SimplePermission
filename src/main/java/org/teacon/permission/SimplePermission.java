@@ -1,7 +1,8 @@
 package org.teacon.permission;
 
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
@@ -12,16 +13,16 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
-import net.minecraftforge.fml.loading.FMLConfig;
-import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.teacon.permission.repo.UserDataRepo;
+import org.teacon.permission.repo.UserGroup;
 
-import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 
 @Mod("simple_permission")
@@ -29,7 +30,9 @@ public class SimplePermission {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
 
-    public static final FolderName SIMPLE_PERMS_FOLDER_NAME =new FolderName("serverconfig/simpleperms");
+    public static final FolderName SIMPLE_PERMS_FOLDER_NAME = new FolderName("serverconfig/simpleperms");
+
+    public static UserDataRepo REPO;
 
     public SimplePermission() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
@@ -44,70 +47,30 @@ public class SimplePermission {
 
     public static void serverStart(FMLServerStartingEvent event) {
         SimplePermissionCommand.register(event.getServer().getCommandManager().getDispatcher());
-        reload(event.getServer());
-    }
+        Path DATA_PATH = event.getServer().func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
 
-    static void reload(MinecraftServer server) {
-        if (!UserDataRepo.INSTANCE.loading) {
-            UserDataRepo.INSTANCE.loading = true;
-            final Path defaultConfig = FMLPaths.GAMEDIR.get().resolve(FMLConfig.defaultConfigPath()).resolve("simple_perms");
-            if (Files.isDirectory(defaultConfig)) {
-                try {
-                    LOGGER.info("Read data from default config directory");
-                    UserDataRepo.INSTANCE.loadFrom(defaultConfig);
-                } catch (Exception e) {
-                    LOGGER.error("Error while try loading data from default config directory.", e);
-                }
-            } else {
-                LOGGER.info("Did not read data from default config directory beceause it probably doesn't exist yet. ");
-                LOGGER.info("Will try creating one now. ");
-                try {
-                    Files.createDirectory(defaultConfig);
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", defaultConfig);
-                    LOGGER.debug("Error details: ", e);
-                }
-            }
-            final Path localData = server.func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
-            if (Files.isDirectory(localData)) {
-                try {
-                    LOGGER.info("Read data from per-world config directory");
-                    UserDataRepo.INSTANCE.loadFrom(localData);
-                } catch (Exception e) {
-                    LOGGER.error("Error while try loading data from world-specific config directory.", e);
-                }
-            } else {
-                LOGGER.info("Did not read data from per-world config directory");
-                LOGGER.info("Will try creating one now. ");
-                try {
-                    Files.createDirectory(localData);
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to create directory {}. You may want to manually create it instead.", localData);
-                    LOGGER.debug("Error details: ", e);
-                }
-            }
-            UserDataRepo.INSTANCE.loading = false;
-        }
-    }
-
-    public static void serverStop(FMLServerStoppingEvent event) {
-        final MinecraftServer server = event.getServer();
-        final Path localData = server.func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
         try {
-            UserDataRepo.INSTANCE.save(localData);
-        } catch (Exception e) {
-            LOGGER.warn("Error occurred while saving player data, bad things may happen. BACK UP FIRST!");
-            LOGGER.debug("Error details: ", e);
+            REPO = new UserDataRepo(DATA_PATH);
+        } catch (IOException e) {
+            throw new ReportedException(new CrashReport("Failed to initialize user data repo", e));
         }
-        UserDataRepo.INSTANCE.reset();
+    }
+
+    @SuppressWarnings("unused")
+    public static void serverStop(FMLServerStoppingEvent event) {
+        try {
+            REPO.save();
+        } catch (IOException e) {
+            LOGGER.error("Failed to save data repo", e);
+        }
     }
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
         final PlayerEntity player = event.getPlayer();
-        UserDataRepo.INSTANCE.initForFirstTime(player.getGameProfile().getId(), group ->
+        REPO.initForFirstTime(player.getGameProfile().getId(), group ->
                 player.setGameType(GameType.getByName(group.mode))
         );
-        final UserGroup group = UserDataRepo.INSTANCE.lookup(player.getGameProfile().getId());
+        final UserGroup group = REPO.lookup(player.getGameProfile().getId());
         event.getPlayer().getPrefixes().add(new StringTextComponent(group.prefix));
     }
 }

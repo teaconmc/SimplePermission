@@ -11,6 +11,8 @@ import net.minecraftforge.server.permission.context.IContext;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import static org.teacon.permission.SimplePermission.REPO;
+
 @ParametersAreNonnullByDefault
 public final class SimplePermissionHandler implements IPermissionHandler {
 
@@ -36,7 +38,7 @@ public final class SimplePermissionHandler implements IPermissionHandler {
 
     @Override
     public boolean hasPermission(GameProfile profile, String node, @Nullable IContext context) {
-        final Boolean result = UserDataRepo.INSTANCE.hasPermission(profile.getId(), node);
+        final Boolean result = REPO.hasPermission(profile.getId(), node);
         return result == null ? this.parent.hasPermission(profile, node, context) : result;
     }
 
