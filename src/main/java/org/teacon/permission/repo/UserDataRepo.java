@@ -1,5 +1,6 @@
 package org.teacon.permission.repo;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -10,8 +11,10 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -85,9 +88,9 @@ public final class UserDataRepo {
         if (saving) return;
         if (!dirty) return;
         saving = true;
-        Files.write(PLAYER_DATA, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8));
-        Files.write(GROUP_DATA, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8));
-        Files.write(FALLBACK_GROUP, GSON.toJson(this.fallbackGroup).getBytes(StandardCharsets.UTF_8));
+        Files.write(PLAYER_DATA, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(GROUP_DATA, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(FALLBACK_GROUP, GSON.toJson(this.fallbackGroup).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         dirty = false;
         saving = false;
     }
@@ -112,8 +115,8 @@ public final class UserDataRepo {
                 .map(Map.Entry::getKey);
     }
 
-    public Stream<String> groups() {
-        return this.groups.keySet().stream();
+    public Set<String> groups() {
+        return ImmutableSet.copyOf(this.groups.keySet());
     }
 
     public void initForFirstTime(UUID id, Consumer<UserGroup> callback) {

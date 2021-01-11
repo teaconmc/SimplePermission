@@ -86,6 +86,7 @@ public final class SimplePermissionCommand {
 
     static int listGroups(CommandContext<CommandSource> context) {
         REPO.groups()
+                .stream()
                 .map(group -> new TranslationTextComponent("command.simple_perms.info.list_item", group))
                 .forEach(t -> context.getSource().sendFeedback(t, true));
         return Command.SINGLE_SUCCESS;
