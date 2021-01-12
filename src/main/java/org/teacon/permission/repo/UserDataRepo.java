@@ -12,10 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -24,8 +21,10 @@ import java.util.stream.Stream;
 public final class UserDataRepo {
 
     private static final Gson GSON = new GsonBuilder().setLenient().create();
-    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>(){}.getType();
-    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>(){}.getType();
+    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {
+    }.getType();
+    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {
+    }.getType();
 
     private final Map<String, UserGroup> groups = new ConcurrentHashMap<>();
     private final Map<UUID, String> users = new ConcurrentHashMap<>();
@@ -150,6 +149,34 @@ public final class UserDataRepo {
                     .findFirst()
                     .orElse(null);
         }
+    }
+
+    public void grant(String group, String permission, boolean bool) {
+        final UserGroup userGroup = this.groups.get(group);
+        if (userGroup == null) return;
+        dirty = true;
+        userGroup.permissions.put(permission, bool);
+    }
+
+    @SuppressWarnings("NonAtomicOperationOnVolatileField")
+    public void revoke(String group, String permission) {
+        final UserGroup userGroup = this.groups.get(group);
+        if (userGroup == null) return;
+        dirty |= userGroup.permissions.remove(permission);
+    }
+
+    @SuppressWarnings("NonAtomicOperationOnVolatileField")
+    public void addParent(String group, String parent) {
+        final UserGroup userGroup = this.groups.get(group);
+        if (group == null || !groups.containsKey(parent)) return;
+        dirty |= userGroup.parents.add(parent);
+    }
+
+    @SuppressWarnings("NonAtomicOperationOnVolatileField")
+    public void removeParent(String group, String parent) {
+        final UserGroup userGroup = this.groups.get(group);
+        if (userGroup == null) return;
+        dirty |= userGroup.parents.removeIf(parent::equals);
     }
 
 }

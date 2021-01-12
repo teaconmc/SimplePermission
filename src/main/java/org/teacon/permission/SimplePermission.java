@@ -19,6 +19,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.teacon.permission.command.SimplePermissionCommand;
 import org.teacon.permission.repo.UserDataRepo;
 import org.teacon.permission.repo.UserGroup;
 
