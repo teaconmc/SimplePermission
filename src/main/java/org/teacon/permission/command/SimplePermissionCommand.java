@@ -147,7 +147,9 @@ public final class SimplePermissionCommand {
 
     private static int listGroupParents(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        // TODO
+        REPO.parentsOf(group)
+                .map(parent -> new TranslationTextComponent("command.simple_perms.info.list_item", parent))
+                .forEach(m -> context.getSource().sendFeedback(m, false));
         return Command.SINGLE_SUCCESS;
     }
 

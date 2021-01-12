@@ -179,4 +179,9 @@ public final class UserDataRepo {
         dirty |= userGroup.parents.removeIf(parent::equals);
     }
 
+    public Stream<String> parentsOf(String group) {
+        if (!groups.containsKey(group)) return Stream.empty();
+        return groups.get(group).parents.stream();
+    }
+
 }
