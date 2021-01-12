@@ -13,7 +13,6 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.util.Util;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
@@ -46,6 +45,17 @@ public final class SimplePermissionCommand {
                                                 .executes(SimplePermissionCommand::grant))))
                                 .then(Commands.literal("revoke").then(Commands.argument("permission", StringArgumentType.word())
                                         .executes(SimplePermissionCommand::revoke)))
+                                .then(Commands.literal("parents")
+                                        .then(Commands.literal("add")
+                                                // TODO string argument type?
+                                                .then(Commands.argument("parent", StringArgumentType.string())
+                                                        .executes(SimplePermissionCommand::addParent)))
+                                        .then(Commands.literal("remove")
+                                                // TODO string argument type?
+                                                .then(Commands.argument("parent", StringArgumentType.string())
+                                                        .executes(SimplePermissionCommand::removeParent)))
+                                        .executes(SimplePermissionCommand::listGroupParents)
+                                )
                         ))
                 .then(Commands.literal("reload")
                         .requires(SimplePermissionCommand::check)
@@ -57,7 +67,7 @@ public final class SimplePermissionCommand {
         dispatcher.register(Commands.literal("simpleperms").redirect(theCommand));
     }
 
-    static boolean check(CommandSource source) {
+    private static boolean check(CommandSource source) {
         try {
             return PermissionAPI.hasPermission(source.asPlayer(), "command.simple_perms.manage");
         } catch (Exception e) {
@@ -65,12 +75,12 @@ public final class SimplePermissionCommand {
         }
     }
 
-    static int info(CommandContext<CommandSource> context) {
+    private static int info(CommandContext<CommandSource> context) {
         context.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.about", ObjectArrays.EMPTY_ARRAY), false);
         return Command.SINGLE_SUCCESS;
     }
 
-    static int reload(CommandContext<CommandSource> context) {
+    private static int reload(CommandContext<CommandSource> context) {
         context.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.reload", ObjectArrays.EMPTY_ARRAY), true);
         Util.getServerExecutor().execute(() -> {
             try {
@@ -83,7 +93,7 @@ public final class SimplePermissionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    static int listGroups(CommandContext<CommandSource> context) {
+    private static int listGroups(CommandContext<CommandSource> context) {
         REPO.groups()
                 .stream()
                 .map(group -> new TranslationTextComponent("command.simple_perms.info.list_item", group))
@@ -91,7 +101,7 @@ public final class SimplePermissionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    static int addPlayerToGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int addPlayerToGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         GameProfileArgument.getGameProfiles(context, "player").stream()
                 .map(GameProfile::getId)
@@ -99,14 +109,14 @@ public final class SimplePermissionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    static int removePlayerFromGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int removePlayerFromGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
         GameProfileArgument.getGameProfiles(context, "player").stream()
                 .map(GameProfile::getId)
                 .forEach(uuid -> REPO.assignUserToGroup(uuid, ""));
         return Command.SINGLE_SUCCESS;
     }
 
-    static int listMembers(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int listMembers(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         final CommandSource source = context.getSource();
         long count = REPO.reverseLookup(group)
@@ -120,7 +130,7 @@ public final class SimplePermissionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    static int grant(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int grant(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         final String permission = StringArgumentType.getString(context, "permission");
         final boolean bool = BoolArgumentType.getBool(context, "bool");
@@ -128,10 +138,28 @@ public final class SimplePermissionCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    static int revoke(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    private static int revoke(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         final String permission = StringArgumentType.getString(context, "permission");
         REPO.revoke(group, permission);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int listGroupParents(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        // TODO
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int removeParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        // TODO
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int addParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        // TODO
         return Command.SINGLE_SUCCESS;
     }
 }
