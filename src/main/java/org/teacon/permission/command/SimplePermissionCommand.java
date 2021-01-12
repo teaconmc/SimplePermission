@@ -47,8 +47,7 @@ public final class SimplePermissionCommand {
                                         .executes(SimplePermissionCommand::revoke)))
                                 .then(Commands.literal("parents")
                                         .then(Commands.literal("add")
-                                                // TODO string argument type?
-                                                .then(Commands.argument("parent", StringArgumentType.string())
+                                                .then(Commands.argument("parent", UserGroupArgumentType.userGroup())
                                                         .executes(SimplePermissionCommand::addParent)))
                                         .then(Commands.literal("remove")
                                                 // TODO string argument type?
@@ -155,13 +154,15 @@ public final class SimplePermissionCommand {
 
     private static int removeParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        // TODO
+        final String parent = StringArgumentType.getString(context, "parent");
+        REPO.removeParent(group, parent);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int addParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        // TODO
+        final String parent = UserGroupArgumentType.getUserGroup(context, "parent");
+        REPO.addParent(group, parent);
         return Command.SINGLE_SUCCESS;
     }
 }
