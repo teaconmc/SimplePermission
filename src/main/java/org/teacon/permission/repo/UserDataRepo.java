@@ -21,10 +21,8 @@ import java.util.stream.Stream;
 public final class UserDataRepo {
 
     private static final Gson GSON = new GsonBuilder().setLenient().create();
-    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {
-    }.getType();
-    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {
-    }.getType();
+    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {}.getType();
+    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {}.getType();
 
     private final Map<String, UserGroup> groups = new ConcurrentHashMap<>();
     private final Map<UUID, String> users = new ConcurrentHashMap<>();
@@ -158,24 +156,24 @@ public final class UserDataRepo {
         userGroup.permissions.put(permission, bool);
     }
 
-    @SuppressWarnings("NonAtomicOperationOnVolatileField")
     public void revoke(String group, String permission) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
+        // noinspection NonAtomicOperationOnVolatileField
         dirty |= userGroup.permissions.remove(permission);
     }
 
-    @SuppressWarnings("NonAtomicOperationOnVolatileField")
     public void addParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (group == null || !groups.containsKey(parent)) return;
+        // noinspection NonAtomicOperationOnVolatileField
         dirty |= userGroup.parents.add(parent);
     }
 
-    @SuppressWarnings("NonAtomicOperationOnVolatileField")
     public void removeParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
+        // noinspection NonAtomicOperationOnVolatileField
         dirty |= userGroup.parents.removeIf(parent::equals);
     }
 

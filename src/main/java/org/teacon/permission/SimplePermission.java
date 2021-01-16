@@ -13,6 +13,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.teacon.permission.command.SimplePermissionCommand;
+import org.teacon.permission.command.arguments.ArgumentsRegistry;
 import org.teacon.permission.repo.UserDataRepo;
 import org.teacon.permission.repo.UserGroup;
 
@@ -38,6 +40,7 @@ public class SimplePermission {
     public SimplePermission() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
                 () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (serverVer, isDedicated) -> true));
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(ArgumentsRegistry::registerArguments);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStart);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStop);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::handleLogin);

@@ -1,6 +1,6 @@
 package org.teacon.permission.command.arguments;
 
-public class UserGroupInput implements IUserGroupArgument {
+public class UserGroupInput {
 
     private final String groupName;
 
@@ -12,7 +12,6 @@ public class UserGroupInput implements IUserGroupArgument {
         return new UserGroupInput(name);
     }
 
-    @Override
     public String getGroup() {
         return groupName;
     }

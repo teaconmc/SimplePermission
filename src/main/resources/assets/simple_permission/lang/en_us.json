@@ -5,5 +5,6 @@
     "command.simple_perms.info.reload": "SimplePermission has started reloading. ",
     "command.simple_perms.info.list_item": " - %s",
     "command.simple_perms.info.total_members": "-- Total %s member(s) --",
-    "command.simple_perms.error.reload": "Failed to reload data repo, check log for details"
+    "command.simple_perms.error.reload": "Failed to reload data repo, check log for details",
+    "command.simple_perms.error.invalid_parent": "Could not find a parent called '%s'!"
 }

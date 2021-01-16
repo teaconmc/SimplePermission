@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.command.CommandSource;
@@ -18,6 +19,7 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.teacon.permission.SimplePermission;
+import org.teacon.permission.command.arguments.ParentArgumentType;
 import org.teacon.permission.command.arguments.UserGroupArgumentType;
 
 import java.io.IOException;
@@ -29,6 +31,9 @@ import static org.teacon.permission.SimplePermission.REPO;
 public final class SimplePermissionCommand {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
+
+    private static final DynamicCommandExceptionType PARENT_NOT_EXIST
+            = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_parent", o));
 
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         LiteralCommandNode<CommandSource> theCommand = dispatcher.register(Commands.literal("simplepermission")
@@ -50,12 +55,9 @@ public final class SimplePermissionCommand {
                                                 .then(Commands.argument("parent", UserGroupArgumentType.userGroup())
                                                         .executes(SimplePermissionCommand::addParent)))
                                         .then(Commands.literal("remove")
-                                                // TODO string argument type?
-                                                .then(Commands.argument("parent", StringArgumentType.string())
+                                                .then(Commands.argument("parent", ParentArgumentType.parentsOf("group"))
                                                         .executes(SimplePermissionCommand::removeParent)))
-                                        .executes(SimplePermissionCommand::listGroupParents)
-                                )
-                        ))
+                                        .executes(SimplePermissionCommand::listGroupParents))))
                 .then(Commands.literal("reload")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::reload))
@@ -154,7 +156,8 @@ public final class SimplePermissionCommand {
 
     private static int removeParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String parent = StringArgumentType.getString(context, "parent");
+        final String parent = ParentArgumentType.getParent(context, "parent");
+        if (REPO.parentsOf(group).noneMatch(parent::equals)) throw PARENT_NOT_EXIST.create(parent);
         REPO.removeParent(group, parent);
         return Command.SINGLE_SUCCESS;
     }
