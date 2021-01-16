@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 @ThreadSafe
 public final class UserDataRepo {
 
@@ -152,29 +153,34 @@ public final class UserDataRepo {
     public void grant(String group, String permission, boolean bool) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        dirty = true;
-        userGroup.permissions.put(permission, bool);
+        synchronized (userGroup) {
+            dirty = true;
+            userGroup.permissions.put(permission, bool);
+        }
     }
 
     public void revoke(String group, String permission) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        // noinspection NonAtomicOperationOnVolatileField
-        dirty |= userGroup.permissions.remove(permission);
+        synchronized (userGroup) {
+            dirty |= userGroup.permissions.remove(permission);
+        }
     }
 
     public void addParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
-        if (group == null || !groups.containsKey(parent)) return;
-        // noinspection NonAtomicOperationOnVolatileField
-        dirty |= userGroup.parents.add(parent);
+        if (group == null) return;
+        synchronized (userGroup) {
+            dirty |= userGroup.parents.add(parent);
+        }
     }
 
     public void removeParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        // noinspection NonAtomicOperationOnVolatileField
-        dirty |= userGroup.parents.removeIf(parent::equals);
+        synchronized (userGroup) {
+            dirty |= userGroup.parents.removeIf(parent::equals);
+        }
     }
 
     public Stream<String> parentsOf(String group) {
