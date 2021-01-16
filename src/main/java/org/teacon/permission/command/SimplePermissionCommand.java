@@ -14,6 +14,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.util.Util;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +58,12 @@ public final class SimplePermissionCommand {
                                         .then(Commands.literal("remove")
                                                 .then(Commands.argument("parent", ParentArgumentType.parentsOf("group"))
                                                         .executes(SimplePermissionCommand::removeParent)))
-                                        .executes(SimplePermissionCommand::listGroupParents))))
+                                        .executes(SimplePermissionCommand::listGroupParents))
+                                .then(Commands.literal("prefix")
+                                        .then(Commands.argument("prefix", StringArgumentType.word())
+                                                .executes(SimplePermissionCommand::setPrefix)
+                                        )
+                                        .executes(SimplePermissionCommand::printPrefix))))
                 .then(Commands.literal("reload")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::reload))
@@ -166,6 +172,19 @@ public final class SimplePermissionCommand {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         final String parent = UserGroupArgumentType.getUserGroup(context, "parent");
         REPO.addParent(group, parent);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int printPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        context.getSource().sendFeedback(new StringTextComponent(REPO.getPrefix(group)), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String prefix = StringArgumentType.getString(context, "prefix");
+        REPO.setPrefix(group, prefix);
         return Command.SINGLE_SUCCESS;
     }
 }

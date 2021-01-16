@@ -182,4 +182,21 @@ public final class UserDataRepo {
         return groups.get(group).parents.stream();
     }
 
+    public void createGroup(String name) {
+        if (hasGroup(name)) return;
+        UserGroup group = new UserGroup();
+        group.name = name;
+        groups.put(name, group);
+        dirty=true;
+    }
+
+    public String getPrefix(String group) {
+        return groups.getOrDefault(group, fallbackGroup).prefix;
+    }
+
+    public void setPrefix(String group, String prefix) {
+        if (hasGroup(group)) {
+            groups.get(group).prefix = prefix;
+        }
+    }
 }
