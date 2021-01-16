@@ -207,4 +207,14 @@ public final class UserDataRepo {
             dirty = true;
         }
     }
+
+    public void setFallbackGroup(String groupName) {
+        if (hasGroup(groupName)) {
+            this.fallbackGroup = groups.get(groupName);
+        }
+    }
+
+    public String getFallbackGroup() {
+        return this.fallbackGroup.name;
+    }
 }

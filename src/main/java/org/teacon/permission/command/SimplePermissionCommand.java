@@ -69,6 +69,12 @@ public final class SimplePermissionCommand {
                 .then(Commands.literal("createGroup")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::createGroup))
+                .then(Commands.literal("defaultGroup")
+                        .requires(SimplePermissionCommand::check)
+                        .executes(SimplePermissionCommand::printDefaultGroup)
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("group", UserGroupArgumentType.userGroup())
+                                        .executes(SimplePermissionCommand::setDefaultGroup))))
                 .then(Commands.literal("groups").executes(SimplePermissionCommand::listGroups))
                 .then(Commands.literal("about").executes(SimplePermissionCommand::info)));
 
@@ -193,6 +199,17 @@ public final class SimplePermissionCommand {
     private static int createGroup(CommandContext<CommandSource> context) {
         String name = StringArgumentType.getString(context, "groupName");
         REPO.createGroup(name);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int printDefaultGroup(CommandContext<CommandSource> context) {
+        context.getSource().sendFeedback(new StringTextComponent(REPO.getFallbackGroup()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setDefaultGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        REPO.setFallbackGroup(group);
         return Command.SINGLE_SUCCESS;
     }
 }
