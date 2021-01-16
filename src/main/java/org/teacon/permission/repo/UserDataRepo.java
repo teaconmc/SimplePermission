@@ -187,7 +187,7 @@ public final class UserDataRepo {
         UserGroup group = new UserGroup();
         group.name = name;
         groups.put(name, group);
-        dirty=true;
+        dirty = true;
     }
 
     public String getPrefix(String group) {
@@ -197,6 +197,7 @@ public final class UserDataRepo {
     public void setPrefix(String group, String prefix) {
         if (hasGroup(group)) {
             groups.get(group).prefix = prefix;
+            dirty = true;
         }
     }
 }
