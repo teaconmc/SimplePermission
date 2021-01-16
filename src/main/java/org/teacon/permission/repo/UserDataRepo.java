@@ -68,7 +68,8 @@ public final class UserDataRepo {
 
         if (Files.exists(FALLBACK_GROUP)) {
             dirty = true;
-            this.fallbackGroup = GSON.fromJson(Files.newBufferedReader(FALLBACK_GROUP, StandardCharsets.UTF_8), UserGroup.class);
+            String fallbackGroupName = new String(Files.readAllBytes(FALLBACK_GROUP), StandardCharsets.UTF_8);
+            this.fallbackGroup = groups.getOrDefault(fallbackGroupName, new UserGroup());
         }
 
         // Initialize
@@ -88,7 +89,7 @@ public final class UserDataRepo {
         saving = true;
         Files.write(PLAYER_DATA, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         Files.write(GROUP_DATA, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        Files.write(FALLBACK_GROUP, GSON.toJson(this.fallbackGroup).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(FALLBACK_GROUP, this.fallbackGroup.name.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         dirty = false;
         saving = false;
     }
