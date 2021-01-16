@@ -75,6 +75,9 @@ public final class SimplePermissionCommand {
                         .then(Commands.literal("set")
                                 .then(Commands.argument("group", UserGroupArgumentType.userGroup())
                                         .executes(SimplePermissionCommand::setDefaultGroup))))
+                .then(Commands.literal("save")
+                        .requires(SimplePermissionCommand::check)
+                        .executes(SimplePermissionCommand::save))
                 .then(Commands.literal("groups").executes(SimplePermissionCommand::listGroups))
                 .then(Commands.literal("about").executes(SimplePermissionCommand::info)));
 
@@ -210,6 +213,19 @@ public final class SimplePermissionCommand {
     private static int setDefaultGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         REPO.setFallbackGroup(group);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int save(CommandContext<CommandSource> ctx) {
+        try {
+            long start = System.currentTimeMillis();
+            REPO.save();
+            int took = (int) (System.currentTimeMillis() - start);
+            ctx.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.save", took), false);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to save user data repo", ex);
+            ctx.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.error.save_fail"), false);
+        }
         return Command.SINGLE_SUCCESS;
     }
 }
