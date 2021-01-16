@@ -51,7 +51,7 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
         if (context.getSource() instanceof CommandSource) {
             try {
                 String group = UserGroupArgumentType.getUserGroup((CommandContext<CommandSource>) context, groupArgumentName);
-                return ISuggestionProvider.suggest(REPO.parentsOf(groupArgumentName), builder);
+                return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
             } catch (CommandSyntaxException ex) {
                 LOGGER.error("Failed to give suggestions", ex);
                 return Suggestions.empty();
