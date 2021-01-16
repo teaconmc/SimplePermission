@@ -61,12 +61,14 @@ public final class SimplePermissionCommand {
                                         .executes(SimplePermissionCommand::listGroupParents))
                                 .then(Commands.literal("prefix")
                                         .then(Commands.argument("prefix", StringArgumentType.word())
-                                                .executes(SimplePermissionCommand::setPrefix)
-                                        )
+                                                .executes(SimplePermissionCommand::setPrefix))
                                         .executes(SimplePermissionCommand::printPrefix))))
                 .then(Commands.literal("reload")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::reload))
+                .then(Commands.literal("createGroup")
+                        .requires(SimplePermissionCommand::check)
+                        .executes(SimplePermissionCommand::createGroup))
                 .then(Commands.literal("groups").executes(SimplePermissionCommand::listGroups))
                 .then(Commands.literal("about").executes(SimplePermissionCommand::info)));
 
@@ -185,6 +187,12 @@ public final class SimplePermissionCommand {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
         final String prefix = StringArgumentType.getString(context, "prefix");
         REPO.setPrefix(group, prefix);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int createGroup(CommandContext<CommandSource> context) {
+        String name = StringArgumentType.getString(context, "groupName");
+        REPO.createGroup(name);
         return Command.SINGLE_SUCCESS;
     }
 }
