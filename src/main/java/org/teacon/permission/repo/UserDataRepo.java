@@ -158,26 +158,26 @@ public final class UserDataRepo {
     public void grant(String group, String permission, boolean bool) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-            dirty = true;
-            userGroup.permissions.put(permission, bool);
+        dirty = true;
+        userGroup.permissions.put(permission, bool);
     }
 
     public void revoke(String group, String permission) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-            dirty |= userGroup.permissions.remove(permission);
+        dirty |= userGroup.permissions.remove(permission);
     }
 
     public void addParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (group == null) return;
-            dirty |= userGroup.parents.add(parent);
+        dirty |= userGroup.parents.add(parent);
     }
 
     public void removeParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-            dirty |= userGroup.parents.removeIf(parent::equals);
+        dirty |= userGroup.parents.removeIf(parent::equals);
     }
 
     public Stream<String> parentsOf(String group) {
@@ -189,6 +189,8 @@ public final class UserDataRepo {
         if (hasGroup(name)) return;
         UserGroup group = new UserGroup();
         group.name = name;
+        group.parents = ConcurrentHashMap.newKeySet();
+        group.permissions = new ConcurrentHashMap<>();
         groups.put(name, group);
         dirty = true;
     }
