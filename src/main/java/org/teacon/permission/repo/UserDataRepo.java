@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -29,18 +28,18 @@ public final class UserDataRepo {
     private final Map<UUID, String> users = new ConcurrentHashMap<>();
     private UserGroup fallbackGroup = new UserGroup();
 
-    private final Path PLAYER_DATA;
-    private final Path GROUP_DATA;
-    private final Path FALLBACK_GROUP;
+    private final Path playerDataPath;
+    private final Path groupDataPath;
+    private final Path fallbackGroupDataPath;
 
     private volatile boolean loading = false;
     private volatile boolean saving = false;
     private volatile boolean dirty = false;
 
     public UserDataRepo(Path configRoot) throws IOException {
-        PLAYER_DATA = configRoot.resolve("player_data.dat");
-        GROUP_DATA = configRoot.resolve("group_data.dat");
-        FALLBACK_GROUP = configRoot.resolve("default_group.dat");
+        playerDataPath = configRoot.resolve("player_data.dat");
+        groupDataPath = configRoot.resolve("group_data.dat");
+        fallbackGroupDataPath = configRoot.resolve("default_group.dat");
         load();
     }
 
@@ -54,26 +53,26 @@ public final class UserDataRepo {
         }
         loading = true;
 
-        if (Files.exists(PLAYER_DATA)) {
+        if (Files.exists(playerDataPath)) {
             dirty = true;
             this.users.clear();
-            this.users.putAll(GSON.fromJson(Files.newBufferedReader(PLAYER_DATA, StandardCharsets.UTF_8), USER_LIST_TYPE));
+            this.users.putAll(GSON.fromJson(Files.newBufferedReader(playerDataPath, StandardCharsets.UTF_8), USER_LIST_TYPE));
         }
 
-        if (Files.exists(GROUP_DATA)) {
+        if (Files.exists(groupDataPath)) {
             dirty = true;
             this.groups.clear();
-            this.groups.putAll(GSON.fromJson(Files.newBufferedReader(GROUP_DATA, StandardCharsets.UTF_8), GROUP_LIST_TYPE));
+            this.groups.putAll(GSON.fromJson(Files.newBufferedReader(groupDataPath, StandardCharsets.UTF_8), GROUP_LIST_TYPE));
         }
 
-        if (Files.exists(FALLBACK_GROUP)) {
+        if (Files.exists(fallbackGroupDataPath)) {
             dirty = true;
-            String fallbackGroupName = new String(Files.readAllBytes(FALLBACK_GROUP), StandardCharsets.UTF_8);
+            String fallbackGroupName = new String(Files.readAllBytes(fallbackGroupDataPath), StandardCharsets.UTF_8);
             this.fallbackGroup = groups.getOrDefault(fallbackGroupName, new UserGroup());
         }
 
         // Initialize
-        if (!Files.exists(PLAYER_DATA) || !Files.exists(GROUP_DATA) || !Files.exists(FALLBACK_GROUP)) {
+        if (!Files.exists(playerDataPath) || !Files.exists(groupDataPath) || !Files.exists(fallbackGroupDataPath)) {
             save();
         }
 
@@ -86,10 +85,10 @@ public final class UserDataRepo {
     public void save() throws IOException {
         if (saving) return;
         saving = true;
-        Files.createDirectories(PLAYER_DATA.getParent());
-        Files.write(PLAYER_DATA, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        Files.write(GROUP_DATA, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        Files.write(FALLBACK_GROUP, this.fallbackGroup.name.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.createDirectories(playerDataPath.getParent());
+        Files.write(playerDataPath, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8));
+        Files.write(groupDataPath, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8));
+        Files.write(fallbackGroupDataPath, this.fallbackGroup.name.getBytes(StandardCharsets.UTF_8));
         dirty = false;
         saving = false;
     }
