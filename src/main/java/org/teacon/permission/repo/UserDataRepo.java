@@ -17,11 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+@SuppressWarnings("NonAtomicOperationOnVolatileField")
 @ThreadSafe
 public final class UserDataRepo {
 
-    private static final Gson GSON = new GsonBuilder().setLenient().create();
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(UserGroup.class, new UserGroupTypeAdapter()).setLenient().create();
     private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {}.getType();
     private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {}.getType();
 
@@ -85,13 +85,17 @@ public final class UserDataRepo {
      */
     public void save() throws IOException {
         if (saving) return;
-        if (!dirty) return;
         saving = true;
+        Files.createDirectories(PLAYER_DATA.getParent());
         Files.write(PLAYER_DATA, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         Files.write(GROUP_DATA, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         Files.write(FALLBACK_GROUP, this.fallbackGroup.name.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         dirty = false;
         saving = false;
+    }
+
+    public boolean dirty() {
+        return dirty;
     }
 
     public boolean hasGroup(String group) {
@@ -154,34 +158,26 @@ public final class UserDataRepo {
     public void grant(String group, String permission, boolean bool) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        synchronized (userGroup) {
             dirty = true;
             userGroup.permissions.put(permission, bool);
-        }
     }
 
     public void revoke(String group, String permission) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        synchronized (userGroup) {
             dirty |= userGroup.permissions.remove(permission);
-        }
     }
 
     public void addParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (group == null) return;
-        synchronized (userGroup) {
             dirty |= userGroup.parents.add(parent);
-        }
     }
 
     public void removeParent(String group, String parent) {
         final UserGroup userGroup = this.groups.get(group);
         if (userGroup == null) return;
-        synchronized (userGroup) {
             dirty |= userGroup.parents.removeIf(parent::equals);
-        }
     }
 
     public Stream<String> parentsOf(String group) {

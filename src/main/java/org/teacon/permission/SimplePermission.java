@@ -63,6 +63,7 @@ public class SimplePermission {
     @SuppressWarnings("unused")
     public static void serverStop(FMLServerStoppingEvent event) {
         try {
+            LOGGER.info("Saving simple permission data repo");
             REPO.save();
         } catch (IOException e) {
             LOGGER.error("Failed to save data repo", e);
