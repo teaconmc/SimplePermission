@@ -33,7 +33,7 @@ public class SimplePermission {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
 
-    public static final FolderName SIMPLE_PERMS_FOLDER_NAME = new FolderName("serverconfig/simpleperms");
+    public static final FolderName SIMPLE_PERMS_FOLDER_NAME = new FolderName("simpleperms");
 
     public static UserDataRepo REPO;
 
