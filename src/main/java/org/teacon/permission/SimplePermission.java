@@ -3,10 +3,12 @@ package org.teacon.permission;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -15,6 +17,7 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,6 +47,7 @@ public class SimplePermission {
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStart);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStop);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::handleLogin);
+        MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
         final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
         LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
         PermissionAPI.setPermissionHandler(new SimplePermissionHandler(previous));
@@ -67,6 +71,22 @@ public class SimplePermission {
             REPO.save();
         } catch (IOException e) {
             LOGGER.error("Failed to save data repo", e);
+        }
+    }
+
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+        if (ServerLifecycleHooks.getCurrentServer().getTickCounter() % 6000 == 0) {
+            if (REPO.dirty()) {
+                try {
+                    REPO.save();
+                    LOGGER.debug("Auto saving data repo");
+                } catch (IOException e) {
+                    LOGGER.error("Failed to save data repo", e);
+                }
+            }
         }
     }
 
