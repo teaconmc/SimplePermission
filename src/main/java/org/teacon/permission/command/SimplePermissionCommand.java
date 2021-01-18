@@ -20,11 +20,13 @@ import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.teacon.permission.SimplePermission;
+import org.teacon.permission.SimplePermissionHandler;
 import org.teacon.permission.command.arguments.ParentArgumentType;
 import org.teacon.permission.command.arguments.UserGroupArgumentType;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.teacon.permission.SimplePermission.REPO;
 
@@ -79,6 +81,9 @@ public final class SimplePermissionCommand {
                 .then(Commands.literal("save")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::save))
+                .then(Commands.literal("verbose")
+                        .requires(SimplePermissionCommand::check)
+                        .executes(SimplePermissionCommand::verbose))
                 .then(Commands.literal("groups").executes(SimplePermissionCommand::listGroups))
                 .then(Commands.literal("about").executes(SimplePermissionCommand::info)));
 
@@ -226,6 +231,17 @@ public final class SimplePermissionCommand {
         } catch (Exception ex) {
             LOGGER.error("Failed to save user data repo", ex);
             ctx.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.error.save_fail"), false);
+        }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int verbose(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
+        UUID uuid = ctx.getSource().asPlayer().getUniqueID();
+        SimplePermissionHandler handler = SimplePermission.getPermissionHandler();
+        if (handler.isVerbose(uuid)) {
+            handler.stopVerbose(uuid);
+        } else {
+            handler.verbose(uuid);
         }
         return Command.SINGLE_SUCCESS;
     }

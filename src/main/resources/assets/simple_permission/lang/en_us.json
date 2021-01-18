@@ -8,5 +8,6 @@
     "command.simple_perms.error.reload": "Failed to reload data repo, check log for details",
     "command.simple_perms.error.invalid_parent": "Could not find a parent called '%s'!",
     "command.simple_perms.error.save_fail": "Failed to save user data repo, check log for more details!",
-    "command.simple_perms.info.save": "Successfully saved user data repo, took %d ms."
+    "command.simple_perms.info.save": "Successfully saved user data repo, took %d ms.",
+    "command.simple_perms.info.verbose": "Result for player '%s' node '%s' is %s"
 }

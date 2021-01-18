@@ -40,6 +40,8 @@ public class SimplePermission {
 
     public static UserDataRepo REPO;
 
+    private static SimplePermissionHandler permissionHandler;
+
     public SimplePermission() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST,
                 () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (serverVer, isDedicated) -> true));
@@ -50,7 +52,11 @@ public class SimplePermission {
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
         final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
         LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
-        PermissionAPI.setPermissionHandler(new SimplePermissionHandler(previous));
+        PermissionAPI.setPermissionHandler(permissionHandler = new SimplePermissionHandler(previous));
+    }
+
+    public static SimplePermissionHandler getPermissionHandler() {
+        return permissionHandler;
     }
 
     public static void serverStart(FMLServerStartingEvent event) {
