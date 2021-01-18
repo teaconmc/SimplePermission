@@ -10,5 +10,7 @@ public final class ArgumentsRegistry {
                 new ArgumentSerializer<>(UserGroupArgumentType::new));
         ArgumentTypes.register("simple_permission:group_parent", ParentArgumentType.class,
                 new ParentArgumentType.Serializer());
+        ArgumentTypes.register("simple_permission:gametype", GameTypeArgumentType.class,
+                new ArgumentSerializer<>(GameTypeArgumentType::new));
     }
 }

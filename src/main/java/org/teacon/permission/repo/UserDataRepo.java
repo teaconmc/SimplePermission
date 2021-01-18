@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.world.GameType;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -213,5 +214,15 @@ public final class UserDataRepo {
 
     public String getFallbackGroup() {
         return this.fallbackGroup.name;
+    }
+
+    public void setGameType(String group, GameType gameType) {
+        if (hasGroup(group)) {
+            groups.get(group).mode = gameType.getName();
+        }
+    }
+
+    public String getGameType(String group) {
+        return groups.getOrDefault(group, fallbackGroup).mode;
     }
 }

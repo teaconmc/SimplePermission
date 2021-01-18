@@ -24,7 +24,7 @@ public class UserGroupArgumentType implements ArgumentType<UserGroupInput> {
         return new UserGroupArgumentType();
     }
 
-    public static String getUserGroup(CommandContext<CommandSource> ctx, String name) throws CommandSyntaxException {
+    public static String getUserGroup(CommandContext<?> ctx, String name) throws CommandSyntaxException {
         String group = ctx.getArgument(name, UserGroupInput.class).getGroup();
         if (REPO == null) return group;
         if (!REPO.hasGroup(group)) throw GROUP_NOT_EXIST.create(group);

@@ -34,7 +34,7 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
         return new ParentArgumentType(group);
     }
 
-    public static String getParent(CommandContext<CommandSource> ctx, String name) {
+    public static String getParent(CommandContext<?> ctx, String name) {
         return ctx.getArgument(name, ParentInput.class).getParent();
     }
 

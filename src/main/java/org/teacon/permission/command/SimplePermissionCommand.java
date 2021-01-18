@@ -16,11 +16,13 @@ import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.GameType;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.teacon.permission.SimplePermission;
 import org.teacon.permission.SimplePermissionHandler;
+import org.teacon.permission.command.arguments.GameTypeArgumentType;
 import org.teacon.permission.command.arguments.ParentArgumentType;
 import org.teacon.permission.command.arguments.UserGroupArgumentType;
 
@@ -64,7 +66,11 @@ public final class SimplePermissionCommand {
                                 .then(Commands.literal("prefix")
                                         .then(Commands.argument("prefix", StringArgumentType.word())
                                                 .executes(SimplePermissionCommand::setPrefix))
-                                        .executes(SimplePermissionCommand::printPrefix))))
+                                        .executes(SimplePermissionCommand::printPrefix))
+                                .then(Commands.literal("gamemode")
+                                        .then(Commands.argument("gametype", GameTypeArgumentType.gameType())
+                                                .executes(SimplePermissionCommand::setGameType))
+                                        .executes(SimplePermissionCommand::printGameType))))
                 .then(Commands.literal("reload")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::reload))
@@ -243,6 +249,22 @@ public final class SimplePermissionCommand {
         } else {
             handler.verbose(uuid);
         }
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(ctx, "group");
+        final GameType gameType = GameTypeArgumentType.getGameType(ctx, "gametype");
+        REPO.setGameType(group, gameType);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int printGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
+        final String group = UserGroupArgumentType.getUserGroup(ctx, "group");
+        ctx.getSource().sendFeedback(
+                new StringTextComponent(REPO.getGameType(group)),
+                false
+        );
         return Command.SINGLE_SUCCESS;
     }
 }
