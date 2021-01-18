@@ -18,6 +18,7 @@ import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.server.permission.DefaultPermissionLevel;
 import net.minecraftforge.server.permission.IPermissionHandler;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,6 +63,8 @@ public class SimplePermission {
     public static void serverStart(FMLServerStartingEvent event) {
         SimplePermissionCommand.register(event.getServer().getCommandManager().getDispatcher());
         Path DATA_PATH = event.getServer().func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
+
+        PermissionAPI.registerNode(PermissionNodes.MANAGE, DefaultPermissionLevel.OP, "Management permission of simple permission");
 
         try {
             REPO = new UserDataRepo(DATA_PATH);

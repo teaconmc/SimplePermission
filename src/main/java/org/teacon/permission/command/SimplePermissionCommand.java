@@ -20,6 +20,7 @@ import net.minecraft.world.GameType;
 import net.minecraftforge.server.permission.PermissionAPI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.teacon.permission.PermissionNodes;
 import org.teacon.permission.SimplePermission;
 import org.teacon.permission.SimplePermissionHandler;
 import org.teacon.permission.command.arguments.GameTypeArgumentType;
@@ -99,7 +100,7 @@ public final class SimplePermissionCommand {
 
     private static boolean check(CommandSource source) {
         try {
-            return PermissionAPI.hasPermission(source.asPlayer(), "command.simple_perms.manage");
+            return PermissionAPI.hasPermission(source.asPlayer(), PermissionNodes.MANAGE);
         } catch (Exception e) {
             return true; // Assume it's not regular player. TODO are there other loopholes?
         }
