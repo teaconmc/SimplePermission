@@ -25,6 +25,7 @@ import org.teacon.permission.SimplePermission;
 import org.teacon.permission.SimplePermissionHandler;
 import org.teacon.permission.command.arguments.GameTypeArgumentType;
 import org.teacon.permission.command.arguments.ParentArgumentType;
+import org.teacon.permission.command.arguments.PermissionNodeArgumentType;
 import org.teacon.permission.command.arguments.UserGroupArgumentType;
 
 import java.io.IOException;
@@ -51,10 +52,10 @@ public final class SimplePermissionCommand {
                                 .then(Commands.literal("unassign").then(Commands.argument("player", GameProfileArgument.gameProfile())
                                         .executes(SimplePermissionCommand::removePlayerFromGroup)))
                                 .then(Commands.literal("members").executes(SimplePermissionCommand::listMembers))
-                                .then(Commands.literal("grant").then(Commands.argument("permission", StringArgumentType.word())
+                                .then(Commands.literal("grant").then(Commands.argument("permission", PermissionNodeArgumentType.node())
                                         .then(Commands.argument("bool", BoolArgumentType.bool())
                                                 .executes(SimplePermissionCommand::grant))))
-                                .then(Commands.literal("revoke").then(Commands.argument("permission", StringArgumentType.word())
+                                .then(Commands.literal("revoke").then(Commands.argument("permission", PermissionNodeArgumentType.ofGroup("group"))
                                         .executes(SimplePermissionCommand::revoke)))
                                 .then(Commands.literal("parents")
                                         .then(Commands.literal("add")
@@ -163,7 +164,7 @@ public final class SimplePermissionCommand {
 
     private static int grant(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String permission = StringArgumentType.getString(context, "permission");
+        final String permission = PermissionNodeArgumentType.getNode(context, "permission");
         final boolean bool = BoolArgumentType.getBool(context, "bool");
         REPO.grant(group, permission, bool);
         return Command.SINGLE_SUCCESS;
@@ -171,7 +172,7 @@ public final class SimplePermissionCommand {
 
     private static int revoke(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String permission = StringArgumentType.getString(context, "permission");
+        final String permission = PermissionNodeArgumentType.getNode(context, "permission");
         REPO.revoke(group, permission);
         return Command.SINGLE_SUCCESS;
     }

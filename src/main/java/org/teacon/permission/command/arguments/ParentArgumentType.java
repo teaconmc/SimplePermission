@@ -12,6 +12,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.IArgumentSerializer;
 import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,7 +50,7 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
         if (context.getSource() instanceof CommandSource) {
             try {
-                String group = UserGroupArgumentType.getUserGroup((CommandContext<CommandSource>) context, groupArgumentName);
+                String group = UserGroupArgumentType.getUserGroup(context, groupArgumentName);
                 return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
             } catch (CommandSyntaxException ex) {
                 LOGGER.error("Failed to give suggestions", ex);

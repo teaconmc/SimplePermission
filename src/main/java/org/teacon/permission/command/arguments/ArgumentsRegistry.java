@@ -12,5 +12,7 @@ public final class ArgumentsRegistry {
                 new ParentArgumentType.Serializer());
         ArgumentTypes.register("simple_permission:gametype", GameTypeArgumentType.class,
                 new ArgumentSerializer<>(GameTypeArgumentType::new));
+        ArgumentTypes.register("simple_permission:permission_node", PermissionNodeArgumentType.class,
+                new PermissionNodeArgumentType.Serializer());
     }
 }

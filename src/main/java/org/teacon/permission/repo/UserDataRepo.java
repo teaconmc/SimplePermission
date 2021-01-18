@@ -225,4 +225,11 @@ public final class UserDataRepo {
     public String getGameType(String group) {
         return groups.getOrDefault(group, fallbackGroup).mode;
     }
+
+    public Set<String> getPermissionNodes(String group) {
+        if (hasGroup(group)) {
+            return ImmutableSet.copyOf(groups.get(group).permissions.keySet());
+        }
+        return Collections.emptySet();
+    }
 }
