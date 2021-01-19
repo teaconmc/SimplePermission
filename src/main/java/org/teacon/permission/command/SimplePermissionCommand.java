@@ -25,10 +25,10 @@ import org.apache.logging.log4j.Logger;
 import org.teacon.permission.PermissionNodes;
 import org.teacon.permission.SimplePermission;
 import org.teacon.permission.SimplePermissionHandler;
-import org.teacon.permission.command.arguments.GameTypeArgumentType;
+import org.teacon.permission.command.arguments.GameTypeArgument;
 import org.teacon.permission.command.arguments.ParentArgumentType;
-import org.teacon.permission.command.arguments.PermissionNodeArgumentType;
-import org.teacon.permission.command.arguments.UserGroupArgumentType;
+import org.teacon.permission.command.arguments.PermissionNodeArgument;
+import org.teacon.permission.command.arguments.UserGroupArgument;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -48,20 +48,20 @@ public final class SimplePermissionCommand {
         LiteralCommandNode<CommandSource> theCommand = dispatcher.register(Commands.literal("simplepermission")
                 .then(Commands.literal("group")
                         .requires(SimplePermissionCommand::check)
-                        .then(Commands.argument("group", UserGroupArgumentType.userGroup())
+                        .then(Commands.argument("group", UserGroupArgument.userGroup())
                                 .then(Commands.literal("assign").then(Commands.argument("player", GameProfileArgument.gameProfile())
                                         .executes(SimplePermissionCommand::addPlayerToGroup)))
                                 .then(Commands.literal("unassign").then(Commands.argument("player", GameProfileArgument.gameProfile())
                                         .executes(SimplePermissionCommand::removePlayerFromGroup)))
                                 .then(Commands.literal("members").executes(SimplePermissionCommand::listMembers))
-                                .then(Commands.literal("grant").then(Commands.argument("permission", PermissionNodeArgumentType.node())
+                                .then(Commands.literal("grant").then(Commands.argument("permission", PermissionNodeArgument.node())
                                         .then(Commands.argument("bool", BoolArgumentType.bool())
                                                 .executes(SimplePermissionCommand::grant))))
-                                .then(Commands.literal("revoke").then(Commands.argument("permission", PermissionNodeArgumentType.ofGroup("group"))
+                                .then(Commands.literal("revoke").then(Commands.argument("permission", PermissionNodeArgument.ofGroup("group"))
                                         .executes(SimplePermissionCommand::revoke)))
                                 .then(Commands.literal("parents")
                                         .then(Commands.literal("add")
-                                                .then(Commands.argument("parent", UserGroupArgumentType.userGroup())
+                                                .then(Commands.argument("parent", UserGroupArgument.userGroup())
                                                         .executes(SimplePermissionCommand::addParent)))
                                         .then(Commands.literal("remove")
                                                 .then(Commands.argument("parent", ParentArgumentType.parentsOf("group"))
@@ -72,7 +72,7 @@ public final class SimplePermissionCommand {
                                                 .executes(SimplePermissionCommand::setPrefix))
                                         .executes(SimplePermissionCommand::printPrefix))
                                 .then(Commands.literal("gamemode")
-                                        .then(Commands.argument("gametype", GameTypeArgumentType.gameType())
+                                        .then(Commands.argument("gametype", GameTypeArgument.gameType())
                                                 .executes(SimplePermissionCommand::setGameType))
                                         .executes(SimplePermissionCommand::printGameType))))
                 .then(Commands.literal("reload")
@@ -86,7 +86,7 @@ public final class SimplePermissionCommand {
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::printDefaultGroup)
                         .then(Commands.literal("set")
-                                .then(Commands.argument("group", UserGroupArgumentType.userGroup())
+                                .then(Commands.argument("group", UserGroupArgument.userGroup())
                                         .executes(SimplePermissionCommand::setDefaultGroup))))
                 .then(Commands.literal("save")
                         .requires(SimplePermissionCommand::check)
@@ -136,7 +136,7 @@ public final class SimplePermissionCommand {
     }
 
     private static int addPlayerToGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         GameProfileArgument.getGameProfiles(context, "player").stream()
                 .map(GameProfile::getId)
                 .forEach(uuid -> REPO.assignUserToGroup(uuid, group));
@@ -151,7 +151,7 @@ public final class SimplePermissionCommand {
     }
 
     private static int listMembers(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         final CommandSource source = context.getSource();
         long count = REPO.reverseLookup(group)
                 .map(uuid -> context.getSource().getServer().getPlayerList().getPlayerByUUID(uuid))
@@ -165,22 +165,22 @@ public final class SimplePermissionCommand {
     }
 
     private static int grant(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String permission = PermissionNodeArgumentType.getNode(context, "permission");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
+        final String permission = PermissionNodeArgument.getNode(context, "permission");
         final boolean bool = BoolArgumentType.getBool(context, "bool");
         REPO.grant(group, permission, bool);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int revoke(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String permission = PermissionNodeArgumentType.getNode(context, "permission");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
+        final String permission = PermissionNodeArgument.getNode(context, "permission");
         REPO.revoke(group, permission);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int listGroupParents(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         REPO.parentsOf(group)
                 .map(parent -> new TranslationTextComponent("command.simple_perms.info.list_item", parent))
                 .forEach(m -> context.getSource().sendFeedback(m, false));
@@ -188,7 +188,7 @@ public final class SimplePermissionCommand {
     }
 
     private static int removeParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         final String parent = ParentArgumentType.getParent(context, "parent");
         if (REPO.parentsOf(group).noneMatch(parent::equals)) throw PARENT_NOT_EXIST.create(parent);
         REPO.removeParent(group, parent);
@@ -196,20 +196,20 @@ public final class SimplePermissionCommand {
     }
 
     private static int addParent(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        final String parent = UserGroupArgumentType.getUserGroup(context, "parent");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
+        final String parent = UserGroupArgument.getUserGroup(context, "parent");
         REPO.addParent(group, parent);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int printPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         context.getSource().sendFeedback(new StringTextComponent(ITextComponent.Serializer.toJson(REPO.getPrefix(group))), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         final ITextComponent prefix = ComponentArgument.getComponent(context, "prefix");
         REPO.setPrefix(group, prefix);
         return Command.SINGLE_SUCCESS;
@@ -227,7 +227,7 @@ public final class SimplePermissionCommand {
     }
 
     private static int setDefaultGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        final String group = UserGroupArgument.getUserGroup(context, "group");
         REPO.setFallbackGroup(group);
         return Command.SINGLE_SUCCESS;
     }
@@ -257,14 +257,14 @@ public final class SimplePermissionCommand {
     }
 
     private static int setGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(ctx, "group");
-        final GameType gameType = GameTypeArgumentType.getGameType(ctx, "gametype");
+        final String group = UserGroupArgument.getUserGroup(ctx, "group");
+        final GameType gameType = GameTypeArgument.getGameType(ctx, "gametype");
         REPO.setGameType(group, gameType);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int printGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final String group = UserGroupArgumentType.getUserGroup(ctx, "group");
+        final String group = UserGroupArgument.getUserGroup(ctx, "group");
         ctx.getSource().sendFeedback(
                 new StringTextComponent(REPO.getGameType(group)),
                 false

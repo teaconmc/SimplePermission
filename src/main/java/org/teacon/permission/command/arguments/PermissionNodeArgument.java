@@ -19,23 +19,23 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.teacon.permission.SimplePermission.REPO;
 
-public class PermissionNodeArgumentType implements ArgumentType<String> {
+public class PermissionNodeArgument implements ArgumentType<String> {
 
     private String ofGroup = null;
 
-    public PermissionNodeArgumentType() {
+    public PermissionNodeArgument() {
     }
 
-    public PermissionNodeArgumentType(String group) {
+    public PermissionNodeArgument(String group) {
         this.ofGroup = group;
     }
 
-    public static PermissionNodeArgumentType node() {
-        return new PermissionNodeArgumentType();
+    public static PermissionNodeArgument node() {
+        return new PermissionNodeArgument();
     }
 
-    public static PermissionNodeArgumentType ofGroup(String group) {
-        return new PermissionNodeArgumentType(group);
+    public static PermissionNodeArgument ofGroup(String group) {
+        return new PermissionNodeArgument(group);
     }
 
     public static String getNode(CommandContext<?> ctx, String name) {
@@ -55,7 +55,7 @@ public class PermissionNodeArgumentType implements ArgumentType<String> {
                 return ISuggestionProvider.suggest(PermissionAPI.getPermissionHandler().getRegisteredNodes(), builder);
             } else {
                 try {
-                    final String group = UserGroupArgumentType.getUserGroup(context, ofGroup);
+                    final String group = UserGroupArgument.getUserGroup(context, ofGroup);
                     return ISuggestionProvider.suggest(REPO.getPermissionNodes(group), builder);
                 } catch (Exception e) {
                     return Suggestions.empty();
@@ -70,10 +70,10 @@ public class PermissionNodeArgumentType implements ArgumentType<String> {
 
     @ParametersAreNonnullByDefault
     @MethodsReturnNonnullByDefault
-    public static class Serializer implements IArgumentSerializer<PermissionNodeArgumentType> {
+    public static class Serializer implements IArgumentSerializer<PermissionNodeArgument> {
 
         @Override
-        public void write(PermissionNodeArgumentType argument, PacketBuffer buffer) {
+        public void write(PermissionNodeArgument argument, PacketBuffer buffer) {
             if (argument.ofGroup != null) {
                 buffer.writeBoolean(true);
                 buffer.writeString(argument.ofGroup);
@@ -83,16 +83,16 @@ public class PermissionNodeArgumentType implements ArgumentType<String> {
         }
 
         @Override
-        public PermissionNodeArgumentType read(PacketBuffer buffer) {
+        public PermissionNodeArgument read(PacketBuffer buffer) {
             if (buffer.readBoolean()) {
-                return new PermissionNodeArgumentType(buffer.readString(32767));
+                return new PermissionNodeArgument(buffer.readString(32767));
             } else {
-                return new PermissionNodeArgumentType();
+                return new PermissionNodeArgument();
             }
         }
 
         @Override
-        public void write(PermissionNodeArgumentType argument, JsonObject object) {
+        public void write(PermissionNodeArgument argument, JsonObject object) {
             if (argument.ofGroup != null) {
                 object.addProperty("group", argument.ofGroup);
             }

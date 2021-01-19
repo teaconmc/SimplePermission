@@ -14,7 +14,7 @@ import net.minecraft.world.GameType;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
-public class GameTypeArgumentType implements ArgumentType<GameType> {
+public class GameTypeArgument implements ArgumentType<GameType> {
     private static final DynamicCommandExceptionType GAMETYPE_NOT_EXIST =
             new DynamicCommandExceptionType(e -> new TranslationTextComponent("command.simple_perms.error.gametype_not_exist", e));
 
@@ -22,8 +22,8 @@ public class GameTypeArgumentType implements ArgumentType<GameType> {
         return ctx.getArgument(name, GameType.class);
     }
 
-    public static GameTypeArgumentType gameType() {
-        return new GameTypeArgumentType();
+    public static GameTypeArgument gameType() {
+        return new GameTypeArgument();
     }
 
     @Override

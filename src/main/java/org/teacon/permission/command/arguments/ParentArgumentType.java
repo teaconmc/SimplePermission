@@ -49,7 +49,7 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
         if (context.getSource() instanceof CommandSource) {
             try {
-                String group = UserGroupArgumentType.getUserGroup(context, groupArgumentName);
+                String group = UserGroupArgument.getUserGroup(context, groupArgumentName);
                 return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
             } catch (CommandSyntaxException ex) {
                 LOGGER.error("Failed to give suggestions", ex);
