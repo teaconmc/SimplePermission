@@ -9,7 +9,9 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponent;
 import net.minecraft.world.GameType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -107,6 +109,6 @@ public class SimplePermission {
             player.setGameType(GameType.getByName(group.mode));
         });
         final UserGroup group = UserDataRepo.INSTANCE.lookup(player.getGameProfile().getId());
-        event.getPlayer().getPrefixes().add(new StringTextComponent(group.prefix));
+        event.getPlayer().getPrefixes().add(ITextComponent.Serializer.fromJson(group.prefix));
     }
 }

@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
 
 public final class UserGroup {
@@ -16,7 +18,7 @@ public final class UserGroup {
     /**
      * Prefix that will append before player's display name.
      */
-    public String prefix = "";
+    public JsonElement prefix = new JsonPrimitive("");
 
     /**
      * Marker to denote "this group can be used as a fallback".
