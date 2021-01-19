@@ -12,8 +12,10 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
+import net.minecraft.command.arguments.ComponentArgument;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.util.Util;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameType;
@@ -66,7 +68,7 @@ public final class SimplePermissionCommand {
                                                         .executes(SimplePermissionCommand::removeParent)))
                                         .executes(SimplePermissionCommand::listGroupParents))
                                 .then(Commands.literal("prefix")
-                                        .then(Commands.argument("prefix", StringArgumentType.word())
+                                        .then(Commands.argument("prefix", ComponentArgument.component())
                                                 .executes(SimplePermissionCommand::setPrefix))
                                         .executes(SimplePermissionCommand::printPrefix))
                                 .then(Commands.literal("gamemode")
@@ -202,14 +204,13 @@ public final class SimplePermissionCommand {
 
     private static int printPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        context.getSource().sendFeedback(new StringTextComponent(REPO.getPrefix(group)), false);
+        context.getSource().sendFeedback(new StringTextComponent(ITextComponent.Serializer.toJson(REPO.getPrefix(group))), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
-        // TODO check argument
-        final String prefix = StringArgumentType.getString(context, "prefix");
+        final ITextComponent prefix = ComponentArgument.getComponent(context, "prefix");
         REPO.setPrefix(group, prefix);
         return Command.SINGLE_SUCCESS;
     }

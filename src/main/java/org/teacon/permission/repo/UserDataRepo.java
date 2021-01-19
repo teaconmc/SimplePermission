@@ -197,13 +197,13 @@ public final class UserDataRepo {
         dirty = true;
     }
 
-    public String getPrefix(String group) {
-        return groups.getOrDefault(group, fallbackGroup).prefix.toString();
+    public ITextComponent getPrefix(String group) {
+        return ITextComponent.Serializer.getComponentFromJson(groups.getOrDefault(group, fallbackGroup).prefix);
     }
 
-    public void setPrefix(String group, String prefix) {
+    public void setPrefix(String group, ITextComponent prefix) {
         if (hasGroup(group)) {
-            groups.get(group).prefix = GSON.fromJson(prefix, JsonElement.class);
+            groups.get(group).prefix = ITextComponent.Serializer.toJsonTree(prefix);
             dirty = true;
         }
     }
