@@ -8,6 +8,7 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.ExtensionPoint;
@@ -51,6 +52,7 @@ public class SimplePermission {
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStop);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::handleLogin);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
+        MinecraftForge.EVENT_BUS.addListener(SimplePermission::registerCommands);
         final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
         LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
         PermissionAPI.setPermissionHandler(permissionHandler = new SimplePermissionHandler(previous));
@@ -61,7 +63,6 @@ public class SimplePermission {
     }
 
     public static void serverStart(FMLServerStartingEvent event) {
-        SimplePermissionCommand.register(event.getServer().getCommandManager().getDispatcher());
         Path DATA_PATH = event.getServer().func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
 
         PermissionAPI.registerNode(PermissionNodes.MANAGE, DefaultPermissionLevel.OP, "Management permission of simple permission");
@@ -71,6 +72,10 @@ public class SimplePermission {
         } catch (IOException e) {
             throw new ReportedException(new CrashReport("Failed to initialize user data repo", e));
         }
+    }
+
+    public static void registerCommands(RegisterCommandsEvent event) {
+        SimplePermissionCommand.register(event.getDispatcher());
     }
 
     @SuppressWarnings("unused")
