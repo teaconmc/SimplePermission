@@ -208,6 +208,7 @@ public final class SimplePermissionCommand {
 
     private static int setPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgumentType.getUserGroup(context, "group");
+        // TODO check argument
         final String prefix = StringArgumentType.getString(context, "prefix");
         REPO.setPrefix(group, prefix);
         return Command.SINGLE_SUCCESS;

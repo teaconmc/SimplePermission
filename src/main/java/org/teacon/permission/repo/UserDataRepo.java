@@ -3,7 +3,9 @@ package org.teacon.permission.repo;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.GameType;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -196,12 +198,12 @@ public final class UserDataRepo {
     }
 
     public String getPrefix(String group) {
-        return groups.getOrDefault(group, fallbackGroup).prefix;
+        return groups.getOrDefault(group, fallbackGroup).prefix.toString();
     }
 
     public void setPrefix(String group, String prefix) {
         if (hasGroup(group)) {
-            groups.get(group).prefix = prefix;
+            groups.get(group).prefix = GSON.fromJson(prefix, JsonElement.class);
             dirty = true;
         }
     }

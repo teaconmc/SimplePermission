@@ -4,7 +4,9 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
@@ -110,6 +112,6 @@ public class SimplePermission {
                 player.setGameType(GameType.getByName(group.mode))
         );
         final UserGroup group = REPO.lookup(player.getGameProfile().getId());
-        event.getPlayer().getPrefixes().add(new StringTextComponent(group.prefix));
+        event.getPlayer().getPrefixes().add(ITextComponent.Serializer.getComponentFromJson(group.prefix));
     }
 }
