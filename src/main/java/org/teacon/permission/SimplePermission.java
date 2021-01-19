@@ -4,9 +4,6 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,7 +27,6 @@ import org.apache.logging.log4j.Logger;
 import org.teacon.permission.command.SimplePermissionCommand;
 import org.teacon.permission.command.arguments.ArgumentsRegistry;
 import org.teacon.permission.repo.UserDataRepo;
-import org.teacon.permission.repo.UserGroup;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -111,7 +107,6 @@ public class SimplePermission {
         REPO.initForFirstTime(player.getGameProfile().getId(), group ->
                 player.setGameType(GameType.getByName(group.mode))
         );
-        final UserGroup group = REPO.lookup(player.getGameProfile().getId());
-        event.getPlayer().getPrefixes().add(ITextComponent.Serializer.getComponentFromJson(group.prefix));
+        event.getPlayer().getPrefixes().add(REPO.getPrefixForUser(player.getUniqueID()).deepCopy());
     }
 }

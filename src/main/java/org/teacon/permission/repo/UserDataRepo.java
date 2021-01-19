@@ -3,7 +3,6 @@ package org.teacon.permission.repo;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.GameType;
@@ -198,12 +197,16 @@ public final class UserDataRepo {
     }
 
     public ITextComponent getPrefix(String group) {
-        return ITextComponent.Serializer.getComponentFromJson(groups.getOrDefault(group, fallbackGroup).prefix);
+        return groups.getOrDefault(group, fallbackGroup).prefix;
+    }
+
+    public ITextComponent getPrefixForUser(UUID uuid) {
+        return lookup(uuid).prefix;
     }
 
     public void setPrefix(String group, ITextComponent prefix) {
         if (hasGroup(group)) {
-            groups.get(group).prefix = ITextComponent.Serializer.toJsonTree(prefix);
+            groups.get(group).prefix = prefix;
             dirty = true;
         }
     }
