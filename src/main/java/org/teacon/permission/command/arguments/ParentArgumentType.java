@@ -51,10 +51,10 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
             String group;
             try {
                 // Don't ask me why, I don't even know, but it works :(
-                group = UserGroupArgumentType.getUserGroup(context.getChild(), groupArgumentName);
+                group = UserGroupArgument.getUserGroup(context.getChild(), groupArgumentName);
             } catch (CommandSyntaxException ex) {
                 try {
-                    group = UserGroupArgumentType.getUserGroup(context, groupArgumentName);
+                    group = UserGroupArgument.getUserGroup(context, groupArgumentName);
                 } catch (Exception gg) {
                     LOGGER.error("Failed to give suggestions", ex);
                     return Suggestions.empty();

@@ -57,10 +57,10 @@ public class PermissionNodeArgument implements ArgumentType<String> {
                 String group;
                 try {
                     // Don't ask me why, I don't even know, but it works :(
-                    group = UserGroupArgumentType.getUserGroup(context.getChild(), ofGroup);
+                    group = UserGroupArgument.getUserGroup(context.getChild(), ofGroup);
                 } catch (Exception e) {
                     try {
-                        group = UserGroupArgumentType.getUserGroup(context, ofGroup);
+                        group = UserGroupArgument.getUserGroup(context, ofGroup);
                     } catch (Exception gg) {
                         return Suggestions.empty();
                     }
