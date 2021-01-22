@@ -1,12 +1,15 @@
 package org.teacon.permission.repo;
 
 import com.google.gson.*;
+import net.minecraft.util.text.ITextComponent;
 
 import java.lang.reflect.Type;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserGroupTypeAdapter implements JsonSerializer<UserGroup>, JsonDeserializer<UserGroup> {
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(ITextComponent.class, new ITextComponent.Serializer())
+            .create();
 
     @Override
     public UserGroup deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

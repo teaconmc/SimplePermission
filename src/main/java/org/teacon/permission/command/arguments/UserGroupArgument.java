@@ -15,13 +15,13 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.teacon.permission.SimplePermission.REPO;
 
-public class UserGroupArgumentType implements ArgumentType<UserGroupInput> {
+public class UserGroupArgument implements ArgumentType<UserGroupInput> {
 
     private static final DynamicCommandExceptionType GROUP_NOT_EXIST
             = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_group", o));
 
-    public static UserGroupArgumentType userGroup() {
-        return new UserGroupArgumentType();
+    public static UserGroupArgument userGroup() {
+        return new UserGroupArgument();
     }
 
     public static String getUserGroup(CommandContext<?> ctx, String name) throws CommandSyntaxException {

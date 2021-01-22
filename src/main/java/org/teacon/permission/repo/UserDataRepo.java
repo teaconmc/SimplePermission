@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.GameType;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -195,11 +196,15 @@ public final class UserDataRepo {
         dirty = true;
     }
 
-    public String getPrefix(String group) {
+    public ITextComponent getPrefix(String group) {
         return groups.getOrDefault(group, fallbackGroup).prefix;
     }
 
-    public void setPrefix(String group, String prefix) {
+    public ITextComponent getPrefixForUser(UUID uuid) {
+        return lookup(uuid).prefix;
+    }
+
+    public void setPrefix(String group, ITextComponent prefix) {
         if (hasGroup(group)) {
             groups.get(group).prefix = prefix;
             dirty = true;
