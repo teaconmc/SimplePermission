@@ -49,13 +49,19 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
     @SuppressWarnings("unchecked")
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
         if (context.getSource() instanceof CommandSource) {
+            String group;
             try {
-                String group = UserGroupArgumentType.getUserGroup(context, groupArgumentName);
-                return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
+                // Don't ask me why, I don't even know, but it works :(
+                group = UserGroupArgumentType.getUserGroup(context.getChild(), groupArgumentName);
             } catch (CommandSyntaxException ex) {
-                LOGGER.error("Failed to give suggestions", ex);
-                return Suggestions.empty();
+                try {
+                    group = UserGroupArgumentType.getUserGroup(context, groupArgumentName);
+                } catch (Exception gg) {
+                    LOGGER.error("Failed to give suggestions", ex);
+                    return Suggestions.empty();
+                }
             }
+            return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
         } else if (context.getSource() instanceof ISuggestionProvider) {
             return ((ISuggestionProvider) context.getSource()).getSuggestionsFromServer((CommandContext<ISuggestionProvider>) context, builder);
         }

@@ -54,12 +54,18 @@ public class PermissionNodeArgumentType implements ArgumentType<String> {
             if (ofGroup == null) {
                 return ISuggestionProvider.suggest(PermissionAPI.getPermissionHandler().getRegisteredNodes(), builder);
             } else {
+                String group;
                 try {
-                    final String group = UserGroupArgumentType.getUserGroup(context, ofGroup);
-                    return ISuggestionProvider.suggest(REPO.getPermissionNodes(group), builder);
+                    // Don't ask me why, I don't even know, but it works :(
+                    group = UserGroupArgumentType.getUserGroup(context.getChild(), ofGroup);
                 } catch (Exception e) {
-                    return Suggestions.empty();
+                    try {
+                        group = UserGroupArgumentType.getUserGroup(context, ofGroup);
+                    } catch (Exception gg) {
+                        return Suggestions.empty();
+                    }
                 }
+                return ISuggestionProvider.suggest(REPO.getPermissionNodes(group), builder);
             }
         } else if (context.getSource() instanceof ISuggestionProvider) {
             return ((ISuggestionProvider) context.getSource()).getSuggestionsFromServer((CommandContext<ISuggestionProvider>) context, builder);
