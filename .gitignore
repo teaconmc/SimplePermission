@@ -4,3 +4,4 @@ run_server
 .gradle
 build
 logs
+out

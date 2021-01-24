@@ -1,10 +1,14 @@
-package org.teacon.permission;
+package org.teacon.permission.repo;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 
 public final class UserGroup {
 
@@ -16,13 +20,7 @@ public final class UserGroup {
     /**
      * Prefix that will append before player's display name.
      */
-    public String prefix = "";
-
-    /**
-     * Marker to denote "this group can be used as a fallback".
-     */
-    @SerializedName("default")
-    public boolean fallback = false;
+    public ITextComponent prefix = new StringTextComponent("");
 
     /**
      * Name of the gamemode that first-time player of this group will be switched to. 

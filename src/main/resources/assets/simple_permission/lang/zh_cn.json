@@ -4,5 +4,11 @@
     "command.simple_perms.info.about": "SimplePermission 版本 0.1.1-beta",
     "command.simple_perms.info.reload": "SimplePermission 已开始重载。",
     "command.simple_perms.info.list_item": " - %s",
-    "command.simple_perms.info.total_members": "-- 总计 %s 名成员 --"
+    "command.simple_perms.info.total_members": "-- 总计 %s 名成员 --",
+    "command.simple_perms.error.reload": "重载配置失败，请检查日志以获取详细信息",
+    "command.simple_perms.error.invalid_parent": "找不到名为 '%s' 的父组！",
+    "command.simple_perms.error.save_fail": "数据库保存失败，检查日志获取详情！",
+    "command.simple_perms.info.save": "数据库保存成功，用时 %d 毫秒。",
+    "command.simple_perms.info.verbose": "玩家 '%s' 的权限点 '%s' 结果为 '%s'",
+    "command.simple_perms.error.gametype_not_exist": "不存在名为 '%s' 的游戏模式"
 }
