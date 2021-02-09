@@ -14,6 +14,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.ComponentArgument;
 import net.minecraft.command.arguments.GameProfileArgument;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -40,6 +41,8 @@ import static org.teacon.permission.SimplePermission.REPO;
 public final class SimplePermissionCommand {
 
     private static final Logger LOGGER = LogManager.getLogger("SimplePerms");
+
+    private static final int NON_PLAYER_MINIMUM_LEVEL = 4;
 
     private static final DynamicCommandExceptionType PARENT_NOT_EXIST
             = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_parent", o));
@@ -102,11 +105,10 @@ public final class SimplePermissionCommand {
     }
 
     private static boolean check(CommandSource source) {
-        try {
-            return PermissionAPI.hasPermission(source.asPlayer(), PermissionNodes.MANAGE);
-        } catch (Exception e) {
-            return true; // Assume it's not regular player. TODO are there other loopholes?
+        if (source.source instanceof ServerPlayerEntity) {
+            return PermissionAPI.hasPermission((ServerPlayerEntity) source.source, PermissionNodes.MANAGE);
         }
+        return source.hasPermissionLevel(NON_PLAYER_MINIMUM_LEVEL);
     }
 
     private static int info(CommandContext<CommandSource> context) {
