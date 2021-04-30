@@ -51,9 +51,6 @@ public class SimplePermission {
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::handleLogin);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::registerCommands);
-        final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
-        LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
-        PermissionAPI.setPermissionHandler(permissionHandler = new SimplePermissionHandler(previous));
     }
 
     public static SimplePermissionHandler getPermissionHandler() {
@@ -67,6 +64,10 @@ public class SimplePermission {
 
         try {
             REPO = new UserDataRepo(DATA_PATH);
+            // TODO We still don't know where to call setPermissionHandler
+            final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
+            LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
+            PermissionAPI.setPermissionHandler(permissionHandler = new SimplePermissionHandler(previous));
         } catch (IOException e) {
             throw new ReportedException(new CrashReport("Failed to initialize user data repo", e));
         }
