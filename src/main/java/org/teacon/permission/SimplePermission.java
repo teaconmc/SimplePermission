@@ -61,7 +61,7 @@ public class SimplePermission {
     }
 
     public static void serverStart(FMLServerStartingEvent event) {
-        Path DATA_PATH = event.getServer().func_240776_a_(SIMPLE_PERMS_FOLDER_NAME);
+        Path DATA_PATH = event.getServer().getWorldPath(SIMPLE_PERMS_FOLDER_NAME);
 
         PermissionAPI.registerNode(PermissionNodes.MANAGE, DefaultPermissionLevel.OP, "Management permission of simple permission");
 
@@ -90,7 +90,7 @@ public class SimplePermission {
         if (event.phase != TickEvent.Phase.END) return;
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        if (ServerLifecycleHooks.getCurrentServer().getTickCounter() % 6000 == 0) {
+        if (ServerLifecycleHooks.getCurrentServer().getTickCount() % 6000 == 0) {
             if (REPO.dirty()) {
                 try {
                     REPO.save();
@@ -105,8 +105,8 @@ public class SimplePermission {
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
         final PlayerEntity player = event.getPlayer();
         REPO.initForFirstTime(player.getGameProfile().getId(), group ->
-                player.setGameType(GameType.getByName(group.mode))
+                player.setGameMode(GameType.byName(group.mode))
         );
-        event.getPlayer().getPrefixes().add(REPO.getPrefixForUser(player.getUniqueID()).deepCopy());
+        event.getPlayer().getPrefixes().add(REPO.getPrefixForUser(player.getUUID()).copy());
     }
 }

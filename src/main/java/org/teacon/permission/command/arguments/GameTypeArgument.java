@@ -31,7 +31,7 @@ public class GameTypeArgument implements ArgumentType<GameType> {
         String type = reader.readString();
         if (Arrays.stream(GameType.values()).noneMatch(g -> g.getName().equals(type)))
             throw GAMETYPE_NOT_EXIST.create(type);
-        return GameType.getByName(type);
+        return GameType.byName(type);
     }
 
     @Override

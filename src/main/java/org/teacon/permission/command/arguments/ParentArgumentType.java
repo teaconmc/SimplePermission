@@ -62,7 +62,7 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
             }
             return ISuggestionProvider.suggest(REPO.parentsOf(group), builder);
         } else if (context.getSource() instanceof ISuggestionProvider) {
-            return ((ISuggestionProvider) context.getSource()).getSuggestionsFromServer((CommandContext<ISuggestionProvider>) context, builder);
+            return ((ISuggestionProvider) context.getSource()).customSuggestion((CommandContext<ISuggestionProvider>) context, builder);
         }
         return Suggestions.empty();
     }
@@ -72,17 +72,17 @@ public class ParentArgumentType implements ArgumentType<ParentInput> {
     public static class Serializer implements IArgumentSerializer<ParentArgumentType> {
 
         @Override
-        public void write(ParentArgumentType argument, PacketBuffer buffer) {
-            buffer.writeString(argument.groupArgumentName);
+        public void serializeToNetwork(ParentArgumentType argument, PacketBuffer buffer) {
+            buffer.writeUtf(argument.groupArgumentName);
         }
 
         @Override
-        public ParentArgumentType read(PacketBuffer buffer) {
-            return new ParentArgumentType(buffer.readString());
+        public ParentArgumentType deserializeFromNetwork(PacketBuffer buffer) {
+            return new ParentArgumentType(buffer.readUtf(Short.MAX_VALUE));
         }
 
         @Override
-        public void write(ParentArgumentType argument, JsonObject object) {
+        public void serializeToJson(ParentArgumentType argument, JsonObject object) {
             object.addProperty("groupArgumentName", argument.groupArgumentName);
         }
     }

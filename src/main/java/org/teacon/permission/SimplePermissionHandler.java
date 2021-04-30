@@ -46,12 +46,13 @@ public final class SimplePermissionHandler implements IPermissionHandler {
 
     @Override
     public boolean hasPermission(GameProfile profile, String node, @Nullable IContext context) {
-        final Boolean result = REPO.hasPermission(profile.getId(), node);
+        // TODO REPO can be null if someone call it on logical client
+        final Boolean result = REPO == null ? null : REPO.hasPermission(profile.getId(), node);
         boolean ret = result == null ? this.parent.hasPermission(profile, node, context) : result;
         if (!verboseList.isEmpty()) {
-            verboseList.stream().map(ServerLifecycleHooks.getCurrentServer().getPlayerList()::getPlayerByUUID)
+            verboseList.stream().map(ServerLifecycleHooks.getCurrentServer().getPlayerList()::getPlayer)
                     .filter(Objects::nonNull)
-                    .forEach(p -> p.sendStatusMessage(
+                    .forEach(p -> p.displayClientMessage(
                             new TranslationTextComponent("command.simple_perms.info.verbose", p.getName().getString(), node, ret),
                             false)
                     );

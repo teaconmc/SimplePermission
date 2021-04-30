@@ -68,7 +68,7 @@ public class PermissionNodeArgument implements ArgumentType<String> {
                 return ISuggestionProvider.suggest(REPO.getPermissionNodes(group), builder);
             }
         } else if (context.getSource() instanceof ISuggestionProvider) {
-            return ((ISuggestionProvider) context.getSource()).getSuggestionsFromServer((CommandContext<ISuggestionProvider>) context, builder);
+            return ((ISuggestionProvider) context.getSource()).customSuggestion((CommandContext<ISuggestionProvider>) context, builder);
         } else {
             return Suggestions.empty();
         }
@@ -79,26 +79,26 @@ public class PermissionNodeArgument implements ArgumentType<String> {
     public static class Serializer implements IArgumentSerializer<PermissionNodeArgument> {
 
         @Override
-        public void write(PermissionNodeArgument argument, PacketBuffer buffer) {
+        public void serializeToNetwork(PermissionNodeArgument argument, PacketBuffer buffer) {
             if (argument.ofGroup != null) {
                 buffer.writeBoolean(true);
-                buffer.writeString(argument.ofGroup);
+                buffer.writeUtf(argument.ofGroup);
             } else {
                 buffer.writeBoolean(false);
             }
         }
 
         @Override
-        public PermissionNodeArgument read(PacketBuffer buffer) {
+        public PermissionNodeArgument deserializeFromNetwork(PacketBuffer buffer) {
             if (buffer.readBoolean()) {
-                return new PermissionNodeArgument(buffer.readString(32767));
+                return new PermissionNodeArgument(buffer.readUtf(Short.MAX_VALUE));
             } else {
                 return new PermissionNodeArgument();
             }
         }
 
         @Override
-        public void write(PermissionNodeArgument argument, JsonObject object) {
+        public void serializeToJson(PermissionNodeArgument argument, JsonObject object) {
             if (argument.ofGroup != null) {
                 object.addProperty("group", argument.ofGroup);
             }

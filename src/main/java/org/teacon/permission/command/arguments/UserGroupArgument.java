@@ -42,7 +42,7 @@ public class UserGroupArgument implements ArgumentType<UserGroupInput> {
         if (context.getSource() instanceof CommandSource) {
             return ISuggestionProvider.suggest(REPO.groups(), builder);
         } else if (context.getSource() instanceof ISuggestionProvider) {
-            return ((ISuggestionProvider) context.getSource()).getSuggestionsFromServer((CommandContext<ISuggestionProvider>) context, builder);
+            return ((ISuggestionProvider) context.getSource()).customSuggestion((CommandContext<ISuggestionProvider>) context, builder);
         }
         return Suggestions.empty();
     }

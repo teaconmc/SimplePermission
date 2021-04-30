@@ -71,7 +71,7 @@ public final class SimplePermissionCommand {
                                                         .executes(SimplePermissionCommand::removeParent)))
                                         .executes(SimplePermissionCommand::listGroupParents))
                                 .then(Commands.literal("prefix")
-                                        .then(Commands.argument("prefix", ComponentArgument.component())
+                                        .then(Commands.argument("prefix", ComponentArgument.textComponent())
                                                 .executes(SimplePermissionCommand::setPrefix))
                                         .executes(SimplePermissionCommand::printPrefix))
                                 .then(Commands.literal("gamemode")
@@ -108,22 +108,22 @@ public final class SimplePermissionCommand {
         if (source.source instanceof ServerPlayerEntity) {
             return PermissionAPI.hasPermission((ServerPlayerEntity) source.source, PermissionNodes.MANAGE);
         }
-        return source.hasPermissionLevel(NON_PLAYER_MINIMUM_LEVEL);
+        return source.hasPermission(NON_PLAYER_MINIMUM_LEVEL);
     }
 
     private static int info(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.about", ObjectArrays.EMPTY_ARRAY), false);
+        context.getSource().sendSuccess(new TranslationTextComponent("command.simple_perms.info.about", ObjectArrays.EMPTY_ARRAY), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int reload(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.reload", ObjectArrays.EMPTY_ARRAY), true);
-        Util.getServerExecutor().execute(() -> {
+        context.getSource().sendSuccess(new TranslationTextComponent("command.simple_perms.info.reload", ObjectArrays.EMPTY_ARRAY), true);
+        Util.backgroundExecutor().execute(() -> {
             try {
                 SimplePermission.REPO.load();
             } catch (IOException e) {
                 LOGGER.error("Failed to reload data repo", e);
-                context.getSource().sendErrorMessage(new TranslationTextComponent("command.simple_perms.error.reload"));
+                context.getSource().sendFailure(new TranslationTextComponent("command.simple_perms.error.reload"));
             }
         });
         return Command.SINGLE_SUCCESS;
@@ -133,7 +133,7 @@ public final class SimplePermissionCommand {
         REPO.groups()
                 .stream()
                 .map(group -> new TranslationTextComponent("command.simple_perms.info.list_item", group))
-                .forEach(t -> context.getSource().sendFeedback(t, true));
+                .forEach(t -> context.getSource().sendSuccess(t, true));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -156,13 +156,13 @@ public final class SimplePermissionCommand {
         final String group = UserGroupArgument.getUserGroup(context, "group");
         final CommandSource source = context.getSource();
         long count = REPO.reverseLookup(group)
-                .map(uuid -> context.getSource().getServer().getPlayerList().getPlayerByUUID(uuid))
+                .map(uuid -> context.getSource().getServer().getPlayerList().getPlayer(uuid))
                 .filter(Objects::nonNull)
                 .map(player -> new TranslationTextComponent("command.simple_perms.info.list_item", player.getDisplayName())
-                        .appendString(" [" + player.getGameProfile().getId() + "]"))
-                .peek(msg -> source.sendFeedback(msg, true))
+                        .append(" [" + player.getGameProfile().getId() + "]"))
+                .peek(msg -> source.sendSuccess(msg, true))
                 .count();
-        source.sendFeedback(new TranslationTextComponent("command.simple_perms.info.total_members", count), true);
+        source.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_members", count), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -185,7 +185,7 @@ public final class SimplePermissionCommand {
         final String group = UserGroupArgument.getUserGroup(context, "group");
         REPO.parentsOf(group)
                 .map(parent -> new TranslationTextComponent("command.simple_perms.info.list_item", parent))
-                .forEach(m -> context.getSource().sendFeedback(m, false));
+                .forEach(m -> context.getSource().sendSuccess(m, false));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -206,7 +206,7 @@ public final class SimplePermissionCommand {
 
     private static int printPrefix(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgument.getUserGroup(context, "group");
-        context.getSource().sendFeedback(new StringTextComponent(ITextComponent.Serializer.toJson(REPO.getPrefix(group))), false);
+        context.getSource().sendSuccess(new StringTextComponent(ITextComponent.Serializer.toJson(REPO.getPrefix(group))), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -224,7 +224,7 @@ public final class SimplePermissionCommand {
     }
 
     private static int printDefaultGroup(CommandContext<CommandSource> context) {
-        context.getSource().sendFeedback(new StringTextComponent(REPO.getFallbackGroup()), false);
+        context.getSource().sendSuccess(new StringTextComponent(REPO.getFallbackGroup()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -239,16 +239,16 @@ public final class SimplePermissionCommand {
             long start = System.currentTimeMillis();
             REPO.save();
             int took = (int) (System.currentTimeMillis() - start);
-            ctx.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.info.save", took), false);
+            ctx.getSource().sendSuccess(new TranslationTextComponent("command.simple_perms.info.save", took), false);
         } catch (Exception ex) {
             LOGGER.error("Failed to save user data repo", ex);
-            ctx.getSource().sendFeedback(new TranslationTextComponent("command.simple_perms.error.save_fail"), false);
+            ctx.getSource().sendSuccess(new TranslationTextComponent("command.simple_perms.error.save_fail"), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int verbose(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        UUID uuid = ctx.getSource().asPlayer().getUniqueID();
+        UUID uuid = ctx.getSource().getPlayerOrException().getUUID();
         SimplePermissionHandler handler = SimplePermission.getPermissionHandler();
         if (handler.isVerbose(uuid)) {
             handler.stopVerbose(uuid);
@@ -267,7 +267,7 @@ public final class SimplePermissionCommand {
 
     private static int printGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
         final String group = UserGroupArgument.getUserGroup(ctx, "group");
-        ctx.getSource().sendFeedback(
+        ctx.getSource().sendSuccess(
                 new StringTextComponent(REPO.getGameType(group)),
                 false
         );
