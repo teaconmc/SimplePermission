@@ -143,7 +143,7 @@ public final class UserDataRepo {
 
     public void initForFirstTime(@Nullable GameProfile gameProfile, Consumer<UserGroup> callback) {
         if (gameProfile != null) {
-            String groupName = lookup(gameProfile.getId());
+            String groupName = this.users.getOrDefault(gameProfile.getId(), "");
             if (!groupName.isEmpty()) {
                 dirty = true;
                 users.put(gameProfile.getId(), groupName);
@@ -229,6 +229,7 @@ public final class UserDataRepo {
 
     public void setFallbackGroup(int opLevel, String groupName) {
         this.fallbackGroups.put(opLevel, groupName);
+        dirty = true;
     }
 
     public String getFallbackGroup(int opLevel) {
@@ -249,6 +250,7 @@ public final class UserDataRepo {
     public void setGameType(String group, GameType gameType) {
         if (hasGroup(group)) {
             groups.getOrDefault(group, new UserGroup()).mode = gameType.getName();
+            dirty = true;
         }
     }
 
