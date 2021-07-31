@@ -237,4 +237,13 @@ public final class UserDataRepo {
         }
         return Collections.emptySet();
     }
+    
+    public Stream<String> getPermissionDetails(String groupId) {
+    	final UserGroup group = this.groups.get(groupId);
+    	if (group != null) {
+    		return group.permissions.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue());
+    	} else {
+    		return Stream.empty();
+    	}
+    }
 }

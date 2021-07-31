@@ -5,6 +5,7 @@
     "command.simple_perms.info.reload": "SimplePermission 已开始重载。",
     "command.simple_perms.info.list_item": " - %s",
     "command.simple_perms.info.total_members": "-- 总计 %s 名成员 --",
+    "command.simple_perms.info.total_permissions": "-- 总计 %s 项权限 --",
     "command.simple_perms.error.reload": "重载配置失败，请检查日志以获取详细信息",
     "command.simple_perms.error.invalid_parent": "找不到名为 '%s' 的父组！",
     "command.simple_perms.error.save_fail": "数据库保存失败，检查日志获取详情！",

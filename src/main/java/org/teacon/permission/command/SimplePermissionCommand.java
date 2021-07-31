@@ -62,6 +62,7 @@ public final class SimplePermissionCommand {
                                                 .executes(SimplePermissionCommand::grant))))
                                 .then(Commands.literal("revoke").then(Commands.argument("permission", PermissionNodeArgument.ofGroup("group"))
                                         .executes(SimplePermissionCommand::revoke)))
+                                .then(Commands.literal("permissions").executes(SimplePermissionCommand::listPermissions))
                                 .then(Commands.literal("parents")
                                         .then(Commands.literal("add")
                                                 .then(Commands.argument("parent", UserGroupArgument.userGroup())
@@ -160,7 +161,7 @@ public final class SimplePermissionCommand {
                 .filter(Objects::nonNull)
                 .map(player -> new TranslationTextComponent("command.simple_perms.info.list_item", player.getDisplayName())
                         .append(" [" + player.getGameProfile().getId() + "]"))
-                .peek(msg -> source.sendSuccess(msg, true))
+                .peek(msg -> source.sendSuccess(msg, false))
                 .count();
         source.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_members", count), true);
         return Command.SINGLE_SUCCESS;
@@ -179,6 +180,17 @@ public final class SimplePermissionCommand {
         final String permission = PermissionNodeArgument.getNode(context, "permission");
         REPO.revoke(group, permission);
         return Command.SINGLE_SUCCESS;
+    }
+    
+    private static int listPermissions(CommandContext<CommandSource> context) throws CommandSyntaxException {
+    	final String group = UserGroupArgument.getUserGroup(context, "group");
+    	final CommandSource src = context.getSource();
+    	long count = REPO.getPermissionDetails(group)
+    			.map(perm -> new StringTextComponent(" - " + perm))
+    			.peek(msg -> src.sendSuccess(msg, false))
+    			.count();
+    	src.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_permissions", count), true);
+    	return Command.SINGLE_SUCCESS;
     }
 
     private static int listGroupParents(CommandContext<CommandSource> context) throws CommandSyntaxException {
