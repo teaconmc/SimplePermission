@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -88,10 +89,12 @@ public final class SimplePermissionCommand {
                                 .executes(SimplePermissionCommand::createGroup)))
                 .then(Commands.literal("defaultgroup")
                         .requires(SimplePermissionCommand::check)
-                        .executes(SimplePermissionCommand::printDefaultGroup)
-                        .then(Commands.literal("set")
-                                .then(Commands.argument("group", UserGroupArgument.userGroup())
-                                        .executes(SimplePermissionCommand::setDefaultGroup))))
+                        .then(Commands.literal("oplevel")
+                                .then(Commands.argument("oplevel", IntegerArgumentType.integer(0, 4))
+                                        .then(Commands.literal("set")
+                                                .then(Commands.argument("group", UserGroupArgument.userGroup())
+                                                        .executes(SimplePermissionCommand::setDefaultGroup)))
+                                        .executes(SimplePermissionCommand::printDefaultGroup))))
                 .then(Commands.literal("save")
                         .requires(SimplePermissionCommand::check)
                         .executes(SimplePermissionCommand::save))
@@ -181,16 +184,16 @@ public final class SimplePermissionCommand {
         REPO.revoke(group, permission);
         return Command.SINGLE_SUCCESS;
     }
-    
+
     private static int listPermissions(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    	final String group = UserGroupArgument.getUserGroup(context, "group");
-    	final CommandSource src = context.getSource();
-    	long count = REPO.getPermissionDetails(group)
-    			.map(perm -> new StringTextComponent(" - " + perm))
-    			.peek(msg -> src.sendSuccess(msg, false))
-    			.count();
-    	src.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_permissions", count), true);
-    	return Command.SINGLE_SUCCESS;
+        final String group = UserGroupArgument.getUserGroup(context, "group");
+        final CommandSource src = context.getSource();
+        long count = REPO.getPermissionDetails(group)
+                .map(perm -> new StringTextComponent(" - " + perm))
+                .peek(msg -> src.sendSuccess(msg, false))
+                .count();
+        src.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_permissions", count), true);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int listGroupParents(CommandContext<CommandSource> context) throws CommandSyntaxException {
@@ -236,13 +239,15 @@ public final class SimplePermissionCommand {
     }
 
     private static int printDefaultGroup(CommandContext<CommandSource> context) {
-        context.getSource().sendSuccess(new StringTextComponent(REPO.getFallbackGroup()), false);
+        final int opLevel = IntegerArgumentType.getInteger(context, "oplevel");
+        context.getSource().sendSuccess(new StringTextComponent(REPO.getFallbackGroup(opLevel)), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setDefaultGroup(CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final int opLevel = IntegerArgumentType.getInteger(context, "oplevel");
         final String group = UserGroupArgument.getUserGroup(context, "group");
-        REPO.setFallbackGroup(group);
+        REPO.setFallbackGroup(opLevel, group);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -280,7 +285,7 @@ public final class SimplePermissionCommand {
     private static int printGameType(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
         final String group = UserGroupArgument.getUserGroup(ctx, "group");
         ctx.getSource().sendSuccess(
-                new StringTextComponent(REPO.getGameType(group)),
+                new StringTextComponent(REPO.getGameType(group).orElseThrow(() -> UserGroupArgument.GROUP_NOT_EXIST.create(group))),
                 false
         );
         return Command.SINGLE_SUCCESS;

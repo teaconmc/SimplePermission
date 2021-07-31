@@ -17,7 +17,7 @@ import static org.teacon.permission.SimplePermission.REPO;
 
 public class UserGroupArgument implements ArgumentType<UserGroupInput> {
 
-    private static final DynamicCommandExceptionType GROUP_NOT_EXIST
+    public static final DynamicCommandExceptionType GROUP_NOT_EXIST
             = new DynamicCommandExceptionType(o -> new TranslationTextComponent("command.simple_perms.error.invalid_group", o));
 
     public static UserGroupArgument userGroup() {

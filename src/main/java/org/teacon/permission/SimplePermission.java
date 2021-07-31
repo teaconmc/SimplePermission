@@ -63,7 +63,7 @@ public class SimplePermission {
         PermissionAPI.registerNode(PermissionNodes.MANAGE, DefaultPermissionLevel.OP, "Management permission of simple permission");
 
         try {
-            REPO = new UserDataRepo(DATA_PATH);
+            REPO = new UserDataRepo(event.getServer(), DATA_PATH);
             // TODO We still don't know where to call setPermissionHandler
             final IPermissionHandler previous = PermissionAPI.getPermissionHandler();
             LOGGER.debug("SimplePermission is going to wrap up the current permission handler {}", previous);
@@ -105,9 +105,7 @@ public class SimplePermission {
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
         final PlayerEntity player = event.getPlayer();
-        REPO.initForFirstTime(player.getGameProfile().getId(), group ->
-                player.setGameMode(GameType.byName(group.mode))
-        );
+        REPO.initForFirstTime(player.getGameProfile(), group -> player.setGameMode(GameType.byName(group.mode)));
         event.getPlayer().getPrefixes().add(REPO.getPrefixForUser(player.getUUID()).copy());
     }
 }
