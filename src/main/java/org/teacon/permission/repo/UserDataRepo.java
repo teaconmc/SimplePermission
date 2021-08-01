@@ -1,6 +1,5 @@
 package org.teacon.permission.repo;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -18,10 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-@SuppressWarnings("NonAtomicOperationOnVolatileField")
 @ThreadSafe
 public final class UserDataRepo {
 
@@ -42,8 +41,9 @@ public final class UserDataRepo {
 
     private final MinecraftServer server;
 
-    private volatile boolean loading = false;
-    private volatile boolean saving = false;
+    private final AtomicBoolean loading = new AtomicBoolean(false);
+    private final AtomicBoolean saving = new AtomicBoolean(false);
+
     private volatile boolean dirty = false;
 
     public UserDataRepo(MinecraftServer server, Path configRoot) throws IOException {
@@ -60,10 +60,7 @@ public final class UserDataRepo {
      * data.
      */
     public void load() throws IOException {
-        if (loading) {
-            return;
-        }
-        loading = true;
+        if (!loading.compareAndSet(false, true)) return;
 
         if (Files.exists(playerDataPath)) {
             dirty = true;
@@ -96,21 +93,23 @@ public final class UserDataRepo {
             save();
         }
 
-        loading = false;
+        loading.set(false);
     }
 
     /**
      * Save data to the root directory.
      */
     public void save() throws IOException {
-        if (saving) return;
-        saving = true;
+        if (!saving.compareAndSet(false, true)) return;
+
         Files.createDirectories(playerDataPath.getParent());
         Files.write(playerDataPath, GSON.toJson(this.users).getBytes(StandardCharsets.UTF_8));
         Files.write(groupDataPath, GSON.toJson(this.groups).getBytes(StandardCharsets.UTF_8));
         Files.write(fallbackGroupDataPaths, GSON.toJson(this.fallbackGroups).getBytes(StandardCharsets.UTF_8));
+
         dirty = false;
-        saving = false;
+
+        saving.set(false);
     }
 
     public boolean dirty() {
@@ -138,16 +137,17 @@ public final class UserDataRepo {
     }
 
     public Set<String> groups() {
-        return ImmutableSet.copyOf(this.groups.keySet());
+        return Collections.unmodifiableSet(this.groups.keySet());
     }
 
-    public void initForFirstTime(@Nullable GameProfile gameProfile, Consumer<UserGroup> callback) {
-        if (gameProfile != null) {
-            String groupName = this.users.getOrDefault(gameProfile.getId(), "");
-            if (!groupName.isEmpty()) {
+    public void initForFirstTime(@Nullable GameProfile profile, Consumer<String> callback) {
+        if (profile != null) {
+            String fallback = this.getFallbackGroup(profile);
+            String groupName = this.users.getOrDefault(profile.getId(), "");
+            if (!getGroupDeep(groupName).containsKey(fallback)) {
+                users.put(profile.getId(), groupName);
+                callback.accept(groupName);
                 dirty = true;
-                users.put(gameProfile.getId(), groupName);
-                callback.accept(groups.getOrDefault(groupName, new UserGroup()));
             }
         }
     }
@@ -156,50 +156,56 @@ public final class UserDataRepo {
         return this.users.getOrDefault(id, this.getFallbackGroup(this.server.getProfileCache().get(id)));
     }
 
-    public Boolean hasPermission(UUID id, String permission) {
-        final UserGroup group = this.groups.getOrDefault(this.lookup(id), new UserGroup());
-        if (group.permissions.containsKey(permission)) {
-            return group.permissions.get(permission);
-        } else {
-            return group.parents.stream()
-                    .map(this.groups::get)
-                    .filter(Objects::nonNull)
-                    .map(g -> g.permissions)
-                    .map(p -> p.get(permission))
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
+    public Boolean hasPermission(UUID id, String perm) {
+        final Collection<UserGroup> groups = getGroupDeep(lookup(id)).values();
+        return groups.stream().map(g -> g.permissions.get(perm)).filter(Objects::nonNull).findFirst().orElse(null);
+    }
+
+    private UserGroup getGroup(String lookup) {
+        return lookup.isEmpty() ? new UserGroup() : this.groups.getOrDefault(lookup, new UserGroup());
+    }
+
+    private Map<String, UserGroup> getGroupDeep(String lookup) {
+        Queue<UserGroup> queue = new ArrayDeque<>();
+        Map<String, UserGroup> collected = new LinkedHashMap<>();
+        for (UserGroup group = getGroup(lookup); group != null; group = queue.poll()) {
+            for (String parent : group.parents) {
+                UserGroup parentGroup = groups.getOrDefault(parent, new UserGroup());
+                if (!collected.containsKey(parent)) {
+                    collected.put(parent, parentGroup);
+                    queue.offer(parentGroup);
+                }
+            }
         }
+        return Collections.unmodifiableMap(collected);
     }
 
     public void grant(String group, String permission, boolean bool) {
-        final UserGroup userGroup = this.groups.get(group);
-        if (userGroup == null) return;
-        dirty = true;
-        userGroup.permissions.put(permission, bool);
+        if (!Boolean.valueOf(bool).equals(getGroup(group).permissions.put(permission, bool))) {
+            dirty = true;
+        }
     }
 
     public void revoke(String group, String permission) {
-        final UserGroup userGroup = this.groups.get(group);
-        if (userGroup == null) return;
-        dirty |= userGroup.permissions.remove(permission);
+        if (getGroup(group).permissions.remove(permission)) {
+            dirty = true;
+        }
     }
 
     public void addParent(String group, String parent) {
-        final UserGroup userGroup = this.groups.get(group);
-        if (group == null) return;
-        dirty |= userGroup.parents.add(parent);
+        if (getGroup(group).parents.add(parent)) {
+            dirty = true;
+        }
     }
 
     public void removeParent(String group, String parent) {
-        final UserGroup userGroup = this.groups.get(group);
-        if (userGroup == null) return;
-        dirty |= userGroup.parents.removeIf(parent::equals);
+        if (getGroup(group).parents.removeIf(parent::equals)) {
+            dirty = true;
+        }
     }
 
     public Stream<String> parentsOf(String group) {
-        if (!groups.containsKey(group)) return Stream.empty();
-        return groups.get(group).parents.stream();
+        return getGroup(group).parents.stream();
     }
 
     public void createGroup(String name) {
@@ -213,16 +219,12 @@ public final class UserDataRepo {
     }
 
     public ITextComponent getPrefix(String group) {
-        return groups.getOrDefault(group, new UserGroup()).prefix;
-    }
-
-    public ITextComponent getPrefixForUser(UUID uuid) {
-        return groups.getOrDefault(this.lookup(uuid), new UserGroup()).prefix;
+        return getGroup(group).prefix;
     }
 
     public void setPrefix(String group, ITextComponent prefix) {
         if (hasGroup(group)) {
-            groups.getOrDefault(group, new UserGroup()).prefix = prefix;
+            getGroup(group).prefix = prefix;
             dirty = true;
         }
     }
@@ -249,27 +251,27 @@ public final class UserDataRepo {
 
     public void setGameType(String group, GameType gameType) {
         if (hasGroup(group)) {
-            groups.getOrDefault(group, new UserGroup()).mode = gameType.getName();
+            getGroup(group).mode = gameType.getName();
             dirty = true;
         }
     }
 
     public Optional<String> getGameType(String group) {
         if (hasGroup(group)) {
-            return Optional.of(groups.getOrDefault(group, new UserGroup()).mode);
+            return Optional.of(getGroup(group).mode);
         }
         return Optional.empty();
     }
 
     public Set<String> getPermissionNodes(String group) {
         if (hasGroup(group)) {
-            return ImmutableSet.copyOf(groups.getOrDefault(group, new UserGroup()).permissions.keySet());
+            return Collections.unmodifiableSet(getGroup(group).permissions.keySet());
         }
         return Collections.emptySet();
     }
     
     public Stream<String> getPermissionDetails(String groupId) {
-    	final UserGroup group = this.groups.getOrDefault(groupId, new UserGroup());
+    	final UserGroup group = getGroup(groupId);
         return group.permissions.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue());
     }
 }

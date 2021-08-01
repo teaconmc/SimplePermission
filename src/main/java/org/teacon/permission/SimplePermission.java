@@ -3,7 +3,10 @@ package org.teacon.permission;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerList;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +33,8 @@ import org.teacon.permission.repo.UserDataRepo;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 @Mod("simple_permission")
 public class SimplePermission {
@@ -105,7 +110,13 @@ public class SimplePermission {
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
         final PlayerEntity player = event.getPlayer();
-        REPO.initForFirstTime(player.getGameProfile(), group -> player.setGameMode(GameType.byName(group.mode)));
-        event.getPlayer().getPrefixes().add(REPO.getPrefixForUser(player.getUUID()).copy());
+        PlayerList list = Objects.requireNonNull(player.getServer()).getPlayerList();
+        REPO.initForFirstTime(player.getGameProfile(), group -> {
+            player.getPrefixes().add(REPO.getPrefix(group).copy());
+            REPO.getGameType(group).ifPresent(type -> player.setGameMode(GameType.byName(type)));
+            Predicate<PlayerEntity> filter = currentPlayer -> group.equals(REPO.lookup(currentPlayer.getUUID()));
+            ServerPlayerEntity[] players = list.getPlayers().stream().filter(filter).toArray(ServerPlayerEntity[]::new);
+            list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, players));
+        });
     }
 }
