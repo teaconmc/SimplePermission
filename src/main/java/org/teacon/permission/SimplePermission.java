@@ -109,14 +109,15 @@ public class SimplePermission {
     }
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        final PlayerEntity player = event.getPlayer();
-        PlayerList list = Objects.requireNonNull(player.getServer()).getPlayerList();
-        REPO.initForFirstTime(player.getGameProfile(), group -> {
-            player.getPrefixes().add(REPO.getPrefix(group).copy());
-            REPO.getGameType(group).ifPresent(type -> player.setGameMode(GameType.byName(type)));
-            Predicate<PlayerEntity> filter = currentPlayer -> group.equals(REPO.lookup(currentPlayer.getUUID()));
-            ServerPlayerEntity[] players = list.getPlayers().stream().filter(filter).toArray(ServerPlayerEntity[]::new);
-            list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, players));
-        });
+        final PlayerEntity eventPlayer = event.getPlayer();
+        if (eventPlayer instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) eventPlayer;
+            REPO.initForFirstTime(eventPlayer.getGameProfile(), group -> {
+                final PlayerList list = player.server.getPlayerList();
+                eventPlayer.getPrefixes().add(REPO.getPrefix(group).copy());
+                REPO.getGameType(group).ifPresent(type -> eventPlayer.setGameMode(GameType.byName(type)));
+                list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+            });
+        }
     }
 }
