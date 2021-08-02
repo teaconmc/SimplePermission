@@ -16,6 +16,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.ComponentArgument;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -158,12 +159,13 @@ public final class SimplePermissionCommand {
 
     private static int listMembers(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgument.getUserGroup(context, "group");
+        final PlayerProfileCache profileCache = context.getSource().getServer().getProfileCache();
         final CommandSource source = context.getSource();
         long count = REPO.reverseLookup(group)
-                .map(uuid -> context.getSource().getServer().getPlayerList().getPlayer(uuid))
+                .map(profileCache::get)
                 .filter(Objects::nonNull)
-                .map(player -> new TranslationTextComponent("command.simple_perms.info.list_item", player.getDisplayName())
-                        .append(" [" + player.getGameProfile().getId() + "]"))
+                .map(profile -> new TranslationTextComponent("command.simple_perms.info.list_item", profile.getName())
+                        .append(" [" + profile.getId() + "]"))
                 .peek(msg -> source.sendSuccess(msg, false))
                 .count();
         source.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_members", count), true);
