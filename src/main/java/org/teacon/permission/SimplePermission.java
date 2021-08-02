@@ -1,5 +1,6 @@
 package org.teacon.permission;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,6 +35,7 @@ import org.teacon.permission.repo.UserDataRepo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 @Mod("simple_permission")
@@ -109,15 +111,16 @@ public class SimplePermission {
     }
 
     public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        final PlayerEntity eventPlayer = event.getPlayer();
-        if (eventPlayer instanceof ServerPlayerEntity) {
-            final ServerPlayerEntity player = (ServerPlayerEntity) eventPlayer;
-            REPO.initForFirstTime(eventPlayer.getGameProfile(), group -> {
-                final PlayerList list = player.server.getPlayerList();
-                eventPlayer.getPrefixes().add(REPO.getPrefix(group).copy());
-                REPO.getGameType(group).ifPresent(type -> eventPlayer.setGameMode(GameType.byName(type)));
-                list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+        if (event.getPlayer() instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+            final GameProfile playerGameProfile = player.getGameProfile();
+            final PlayerList list = player.server.getPlayerList();
+            REPO.initForFirstTime(playerGameProfile, group -> {
+                final Optional<String> gameTypeOptional = REPO.getGameType(group);
+                gameTypeOptional.ifPresent(type -> player.setGameMode(GameType.byName(type)));
             });
+            player.getPrefixes().add(REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy());
+            list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
         }
     }
 }
