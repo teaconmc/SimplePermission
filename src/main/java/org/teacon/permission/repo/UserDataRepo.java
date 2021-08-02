@@ -25,9 +25,12 @@ import java.util.stream.Stream;
 public final class UserDataRepo {
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(UserGroup.class, new UserGroupTypeAdapter()).setLenient().create();
-    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {}.getType();
-    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {}.getType();
-    private static final Type DEFAULT_GROUPS_TYPES = new TypeToken<Map<Integer, String>>() {}.getType();
+    private static final Type USER_LIST_TYPE = new TypeToken<Map<UUID, String>>() {
+    }.getType();
+    private static final Type GROUP_LIST_TYPE = new TypeToken<Map<String, UserGroup>>() {
+    }.getType();
+    private static final Type DEFAULT_GROUPS_TYPES = new TypeToken<Map<Integer, String>>() {
+    }.getType();
 
     private final Map<String, UserGroup> groups = new ConcurrentHashMap<>();
     private final Map<UUID, String> users = new ConcurrentHashMap<>();
@@ -166,9 +169,9 @@ public final class UserDataRepo {
     }
 
     private Map<String, UserGroup> getGroupDeep(String lookup) {
-        Queue<UserGroup> queue = new ArrayDeque<>();
-        Map<String, UserGroup> collected = new LinkedHashMap<>();
-        for (UserGroup group = getGroup(lookup); group != null; group = queue.poll()) {
+        UserGroup group = getGroup(lookup);
+        Map<String, UserGroup> collected = new LinkedHashMap<>(Collections.singletonMap(lookup, group));
+        for (Queue<UserGroup> queue = new ArrayDeque<>(); group != null; group = queue.poll()) {
             for (String parent : group.parents) {
                 UserGroup parentGroup = groups.getOrDefault(parent, new UserGroup());
                 if (!collected.containsKey(parent)) {
@@ -269,9 +272,10 @@ public final class UserDataRepo {
         }
         return Collections.emptySet();
     }
-    
+
     public Stream<String> getPermissionDetails(String groupId) {
-    	final UserGroup group = getGroup(groupId);
-        return group.permissions.entrySet().stream().map(e -> e.getKey() + " = " + e.getValue());
+        return getGroupDeep(groupId).entrySet()
+                .stream().flatMap(entry -> entry.getValue().permissions.entrySet()
+                        .stream().map(e -> e.getKey() + " = " + e.getValue() + " [" + entry.getKey() + "]"));
     }
 }
