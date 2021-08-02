@@ -1,11 +1,16 @@
 package org.teacon.permission.repo;
 
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameType;
 
 import javax.annotation.Nullable;
@@ -273,9 +278,17 @@ public final class UserDataRepo {
         return Collections.emptySet();
     }
 
-    public Stream<String> getPermissionDetails(String groupId) {
-        return getGroupDeep(groupId).entrySet()
-                .stream().flatMap(entry -> entry.getValue().permissions.entrySet()
-                        .stream().map(e -> e.getKey() + " = " + e.getValue() + " [" + entry.getKey() + "]"));
+    public ListMultimap<String, IFormattableTextComponent> getPermissionDetails(String groupId) {
+        ListMultimap<String, IFormattableTextComponent> result = LinkedListMultimap.create();
+        for (Map.Entry<String, UserGroup> entry : getGroupDeep(groupId).entrySet()) {
+            String childGroupId = entry.getKey();
+            for (Map.Entry<String, Boolean> permEntry : entry.getValue().permissions.entrySet()) {
+                String perm = permEntry.getKey();
+                IFormattableTextComponent item = new TranslationTextComponent(
+                        "command.simple_perms.info.permission_item", permEntry.getValue(), childGroupId);
+                result.put(perm, result.containsKey(perm) ? item.withStyle(TextFormatting.STRIKETHROUGH) : item);
+            }
+        }
+        return result;
     }
 }

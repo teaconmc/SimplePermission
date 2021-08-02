@@ -18,6 +18,7 @@ import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.Util;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -34,6 +35,8 @@ import org.teacon.permission.command.arguments.PermissionNodeArgument;
 import org.teacon.permission.command.arguments.UserGroupArgument;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -190,11 +193,13 @@ public final class SimplePermissionCommand {
     private static int listPermissions(CommandContext<CommandSource> context) throws CommandSyntaxException {
         final String group = UserGroupArgument.getUserGroup(context, "group");
         final CommandSource src = context.getSource();
-        long count = REPO.getPermissionDetails(group)
-                .map(perm -> new StringTextComponent(" - " + perm))
-                .peek(msg -> src.sendSuccess(msg, false))
-                .count();
-        src.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_permissions", count), true);
+        final Map<String, Collection<IFormattableTextComponent>> details = REPO.getPermissionDetails(group).asMap();
+        for (Map.Entry<String, Collection<IFormattableTextComponent>> entry : details.entrySet()) {
+            src.sendSuccess(new StringTextComponent(entry.getKey()), false);
+            entry.getValue().forEach(text -> src.sendSuccess(
+                    new TranslationTextComponent("command.simple_perms.info.list_item", text), false));
+        }
+        src.sendSuccess(new TranslationTextComponent("command.simple_perms.info.total_permissions", details.size()), true);
         return Command.SINGLE_SUCCESS;
     }
 
