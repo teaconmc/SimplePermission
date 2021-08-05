@@ -3,7 +3,6 @@ package org.teacon.permission;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.server.MinecraftServer;
@@ -34,9 +33,7 @@ import org.teacon.permission.repo.UserDataRepo;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 @Mod("simple_permission")
 public class SimplePermission {
@@ -119,8 +116,12 @@ public class SimplePermission {
                 final Optional<String> gameTypeOptional = REPO.getGameType(group);
                 gameTypeOptional.ifPresent(type -> player.setGameMode(GameType.byName(type)));
             });
-            player.getPrefixes().add(REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy());
-            list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+            player.server.submitAsync(() -> {
+                LOGGER.info("Update prefixes for {}", playerGameProfile.getName());
+                player.getPrefixes().add(REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy());
+                list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
+                player.connection.send(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, list.getPlayers()));
+            });
         }
     }
 }
