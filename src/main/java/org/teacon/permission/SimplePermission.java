@@ -12,7 +12,7 @@ import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -52,9 +52,9 @@ public class SimplePermission {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ArgumentsRegistry::registerArguments);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStart);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStop);
-        MinecraftForge.EVENT_BUS.addListener(SimplePermission::handleLogin);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::registerCommands);
+        MinecraftForge.EVENT_BUS.addListener(SimplePermission::handlePlayerSpawn);
     }
 
     public static SimplePermissionHandler getPermissionHandler() {
@@ -107,14 +107,15 @@ public class SimplePermission {
         }
     }
 
-    public static void handleLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getPlayer() instanceof ServerPlayerEntity) {
-            final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+    public static void handlePlayerSpawn(EntityJoinWorldEvent event) {
+        if (event.getEntity() instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) event.getEntity();
             final GameProfile playerGameProfile = player.getGameProfile();
             final PlayerList list = player.server.getPlayerList();
-            REPO.initForFirstTime(playerGameProfile, group -> {
+            REPO.initForSpawn(playerGameProfile, group -> {
                 final Optional<String> gameTypeOptional = REPO.getGameType(group);
                 gameTypeOptional.ifPresent(type -> player.setGameMode(GameType.byName(type)));
+                LOGGER.info("Add default group {} for player {}", group, playerGameProfile.getName());
             });
             player.server.submitAsync(() -> {
                 LOGGER.info("Update prefixes for {}", playerGameProfile.getName());

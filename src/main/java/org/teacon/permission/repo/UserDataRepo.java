@@ -148,7 +148,7 @@ public final class UserDataRepo {
         return Collections.unmodifiableSet(this.groups.keySet());
     }
 
-    public void initForFirstTime(@Nullable GameProfile profile, Consumer<String> callback) {
+    public void initForSpawn(@Nullable GameProfile profile, Consumer<String> callback) {
         if (profile != null) {
             String fallback = this.getFallbackGroup(profile);
             String groupName = this.users.getOrDefault(profile.getId(), "");
