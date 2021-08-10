@@ -4,9 +4,8 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
@@ -120,8 +119,8 @@ public class SimplePermission {
             });
             player.refreshDisplayName();
             player.server.submitAsync(() -> {
-                final SPlayerListItemPacket.Action action = SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME;
-                player.connection.send(new SPlayerListItemPacket(action, player.server.getPlayerList().getPlayers()));
+                final PlayerList playerList = player.server.getPlayerList();
+                player.connection.send(VanillaPacketUtils.displayNameUpdatePacketForAll(playerList));
             });
         }
     }
@@ -134,9 +133,8 @@ public class SimplePermission {
             LOGGER.info("Update the prefix for {}", playerGameProfile.getName());
             event.setDisplayname(prefix.append(event.getDisplayname()));
             player.server.submitAsync(() -> {
-                final SPlayerListItemPacket.Action action = SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME;
-                final IPacket<?> packet = new SPlayerListItemPacket(action, player);
-                player.server.getPlayerList().broadcastAll(packet);
+                final PlayerList playerList = player.server.getPlayerList();
+                playerList.broadcastAll(VanillaPacketUtils.displayNameUpdatePacketFor(player));
             });
         }
     }
