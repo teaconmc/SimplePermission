@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
@@ -101,6 +102,9 @@ public final class UserDataRepo {
             save();
         }
 
+        // refresh player names
+        this.server.getPlayerList().getPlayers().forEach(ServerPlayerEntity::refreshDisplayName);
+
         loading.set(false);
     }
 
@@ -134,6 +138,10 @@ public final class UserDataRepo {
             this.users.remove(id);
         } else {
             this.users.put(id, group);
+        }
+        final ServerPlayerEntity player = this.server.getPlayerList().getPlayer(id);
+        if (player != null) {
+            player.refreshDisplayName();
         }
     }
 
@@ -232,8 +240,13 @@ public final class UserDataRepo {
 
     public void setPrefix(String group, ITextComponent prefix) {
         if (hasGroup(group)) {
-            getGroup(group).prefix = prefix;
             dirty = true;
+            getGroup(group).prefix = prefix;
+            for (ServerPlayerEntity player : this.server.getPlayerList().getPlayers()) {
+                if (lookup(player.getGameProfile().getId()).equals(group)) {
+                    player.refreshDisplayName();
+                }
+            }
         }
     }
 

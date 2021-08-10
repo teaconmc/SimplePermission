@@ -4,15 +4,16 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.ReportedException;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.IPacket;
 import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -54,7 +55,8 @@ public class SimplePermission {
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::serverStop);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(SimplePermission::registerCommands);
-        MinecraftForge.EVENT_BUS.addListener(SimplePermission::handlePlayerSpawn);
+        MinecraftForge.EVENT_BUS.addListener(SimplePermission::handlePlayerLogin);
+        MinecraftForge.EVENT_BUS.addListener(SimplePermission::onPlayerNameFormat);
     }
 
     public static SimplePermissionHandler getPermissionHandler() {
@@ -107,21 +109,34 @@ public class SimplePermission {
         }
     }
 
-    public static void handlePlayerSpawn(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof ServerPlayerEntity) {
-            final ServerPlayerEntity player = (ServerPlayerEntity) event.getEntity();
+    public static void handlePlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getPlayer() instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
             final GameProfile playerGameProfile = player.getGameProfile();
-            final PlayerList list = player.server.getPlayerList();
             REPO.initForSpawn(playerGameProfile, group -> {
                 final Optional<String> gameTypeOptional = REPO.getGameType(group);
                 gameTypeOptional.ifPresent(type -> player.setGameMode(GameType.byName(type)));
                 LOGGER.info("Add default group {} for player {}", group, playerGameProfile.getName());
             });
+            player.refreshDisplayName();
             player.server.submitAsync(() -> {
-                LOGGER.info("Update prefixes for {}", playerGameProfile.getName());
-                player.getPrefixes().add(REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy());
-                list.broadcastAll(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, player));
-                player.connection.send(new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, list.getPlayers()));
+                final SPlayerListItemPacket.Action action = SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME;
+                player.connection.send(new SPlayerListItemPacket(action, player.server.getPlayerList().getPlayers()));
+            });
+        }
+    }
+
+    public static void onPlayerNameFormat(PlayerEvent.NameFormat event) {
+        if (event.getPlayer() instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
+            final GameProfile playerGameProfile = player.getGameProfile();
+            final IFormattableTextComponent prefix = REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy();
+            LOGGER.info("Update the prefix for {}", playerGameProfile.getName());
+            event.setDisplayname(prefix.append(event.getDisplayname()));
+            player.server.submitAsync(() -> {
+                final SPlayerListItemPacket.Action action = SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME;
+                final IPacket<?> packet = new SPlayerListItemPacket(action, player);
+                player.server.getPlayerList().broadcastAll(packet);
             });
         }
     }
