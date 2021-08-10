@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '0.4.7'
+version = '0.4.8'
 group = 'org.teacon'
 archivesBaseName = 'SimplePermission-Forge-1.16'
 
