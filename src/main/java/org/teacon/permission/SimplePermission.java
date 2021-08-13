@@ -130,11 +130,12 @@ public class SimplePermission {
             final ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
             final GameProfile playerGameProfile = player.getGameProfile();
             final IFormattableTextComponent prefix = REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy();
-            LOGGER.info("Update the prefix for {}", playerGameProfile.getName());
-            event.setDisplayname(prefix.append(event.getDisplayname()));
+            final IFormattableTextComponent newDisplayName = prefix.append(event.getDisplayname());
+            LOGGER.info("Update the prefix for {}: {}", playerGameProfile.getName(), newDisplayName);
+            event.setDisplayname(newDisplayName);
             player.server.submitAsync(() -> {
                 final PlayerList playerList = player.server.getPlayerList();
-                playerList.broadcastAll(VanillaPacketUtils.displayNameUpdatePacketFor(player));
+                playerList.broadcastAll(VanillaPacketUtils.displayNameUpdatePacketFor(player, newDisplayName));
             });
         }
     }

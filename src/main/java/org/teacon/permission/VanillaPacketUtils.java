@@ -4,6 +4,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.network.play.server.SPlayerListItemPacket.AddPlayerData;
 import net.minecraft.server.management.PlayerList;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,11 +27,11 @@ public final class VanillaPacketUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static SPlayerListItemPacket displayNameUpdatePacketFor(ServerPlayerEntity player) {
+    public static SPlayerListItemPacket displayNameUpdatePacketFor(ServerPlayerEntity player, ITextComponent displayName) {
         final SPlayerListItemPacket packet = new SPlayerListItemPacket(SPlayerListItemPacket.Action.UPDATE_DISPLAY_NAME, Collections.emptyList());
         try {
             List<SPlayerListItemPacket.AddPlayerData> playerData = (List<AddPlayerData>) DISPLAY_NAME.get(packet);
-            playerData.add(packet.new AddPlayerData(player.getGameProfile(), player.latency, player.gameMode.getGameModeForPlayer(), player.getDisplayName()));
+            playerData.add(packet.new AddPlayerData(player.getGameProfile(), player.latency, player.gameMode.getGameModeForPlayer(), displayName));
         } catch (Exception e) {
             LOGGER.warn(MARKER, "Failed to construct PlayerListItemPacket, nickname will be out of sync. Check debug.log for more information.");
             LOGGER.debug(MARKER, "Details: ", e);
