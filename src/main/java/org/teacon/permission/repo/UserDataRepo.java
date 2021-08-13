@@ -161,8 +161,8 @@ public final class UserDataRepo {
             String fallback = this.getFallbackGroup(profile);
             String groupName = this.users.getOrDefault(profile.getId(), "");
             if (!getGroupDeep(groupName).containsKey(fallback)) {
-                users.put(profile.getId(), groupName);
-                callback.accept(groupName);
+                users.put(profile.getId(), fallback);
+                callback.accept(fallback);
                 dirty = true;
             }
         }
