@@ -7,6 +7,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.MinecraftForge;
@@ -131,7 +132,7 @@ public class SimplePermission {
             final GameProfile playerGameProfile = player.getGameProfile();
             final IFormattableTextComponent prefix = REPO.getPrefix(REPO.lookup(playerGameProfile.getId())).copy();
             final IFormattableTextComponent newDisplayName = prefix.append(event.getDisplayname());
-            LOGGER.info("Update the prefix for {}: {}", playerGameProfile.getName(), newDisplayName);
+            LOGGER.info("Update the prefix for {}: {}", playerGameProfile.getName(), ITextComponent.Serializer.toJson(newDisplayName));
             event.setDisplayname(newDisplayName);
             player.server.submitAsync(() -> {
                 final PlayerList playerList = player.server.getPlayerList();

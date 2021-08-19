@@ -33,7 +33,7 @@ public final class VanillaPacketUtils {
             List<SPlayerListItemPacket.AddPlayerData> playerData = (List<AddPlayerData>) DISPLAY_NAME.get(packet);
             playerData.add(packet.new AddPlayerData(player.getGameProfile(), player.latency, player.gameMode.getGameModeForPlayer(), displayName));
         } catch (Exception e) {
-            LOGGER.warn(MARKER, "Failed to construct PlayerListItemPacket, nickname will be out of sync. Check debug.log for more information.");
+            LOGGER.warn(MARKER, "Failed to construct PlayerListItemPacket, simple permission will be out of sync. Check debug.log for more information.");
             LOGGER.debug(MARKER, "Details: ", e);
         }
         return packet;
@@ -48,7 +48,7 @@ public final class VanillaPacketUtils {
                 playerData.add(packet.new AddPlayerData(player.getGameProfile(), player.latency, player.gameMode.getGameModeForPlayer(), player.getDisplayName()));
             }
         } catch (Exception e) {
-            LOGGER.warn(MARKER, "Failed to construct PlayerListItemPacket, nickname will be out of sync. Check debug.log for more information.");
+            LOGGER.warn(MARKER, "Failed to construct PlayerListItemPacket, simple permission will be out of sync. Check debug.log for more information.");
             LOGGER.debug(MARKER, "Details: ", e);
         }
         return packet;
